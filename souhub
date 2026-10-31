@@ -26,10 +26,15 @@ local function getGuiParent()
         sg.Parent = game:GetService("CoreGui")
         return sg
     end
+    -- try CoreGui directly (most executors allow this)
+    local coreGui = game:GetService("CoreGui")
     local ok = pcall(function()
-        local t = Instance.new("ScreenGui"); t.Parent = game:GetService("CoreGui"); t:Destroy()
+        local t = Instance.new("ScreenGui")
+        t.Parent = coreGui
+        t:Destroy()
     end)
-    if ok then return game:GetService("CoreGui") end
+    if ok then return coreGui end
+    -- fallback: PlayerGui
     return LocalPlayer:WaitForChild("PlayerGui")
 end
 
@@ -625,15 +630,13 @@ local function makeRow(parent, label, order)
 end
 
 -- toggle
-local pendingKbBtn = nil
-local keybindMap   = {}
+local pendingKbBtn  = nil
+local keybindMap    = {}   -- [KeyCode] = callback fn
+-- separate registry keyed by btn reference (not attribute)
+local kbBtnRegistry = {}   -- [TextButton] = {toggle=fn, name=str}
 
 local function makeToggle(parent, label, default, onChange, order, keybindKey)
     local row, lbl = makeRow(parent, label, order)
-
-    -- keybind btn (optional)
-    local kbWidth = keybindKey and 52 or 0
-    lbl.Size = UDim2.new(0.55, 0, 1, 0)
 
     local kbBtn
     if keybindKey then
@@ -651,7 +654,6 @@ local function makeToggle(parent, label, default, onChange, order, keybindKey)
         corner(kbBtn, 3)
     end
 
-    -- toggle track
     local track = Instance.new("TextButton", row)
     track.Size               = UDim2.new(0, 30, 0, 16)
     track.Position           = UDim2.new(1, -30, 0.5, -8)
@@ -662,10 +664,10 @@ local function makeToggle(parent, label, default, onChange, order, keybindKey)
     corner(track, 8)
 
     local knob = Instance.new("Frame", track)
-    knob.Size            = UDim2.new(0, 12, 0, 12)
-    knob.Position        = default and UDim2.new(1, -14, 0.5, -6) or UDim2.new(0, 2, 0.5, -6)
+    knob.Size             = UDim2.new(0, 12, 0, 12)
+    knob.Position         = default and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)
     knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    knob.BorderSizePixel = 0
+    knob.BorderSizePixel  = 0
     corner(knob, 6)
 
     local state = default or false
@@ -681,23 +683,24 @@ local function makeToggle(parent, label, default, onChange, order, keybindKey)
     track.MouseButton1Click:Connect(function() setToggle(not state) end)
 
     if kbBtn then
+        -- store in registry table, not as instance attribute
+        kbBtnRegistry[kbBtn] = {toggle = function() setToggle(not state) end, name = label}
+
         kbBtn.MouseButton1Click:Connect(function()
             if pendingKbBtn == kbBtn then
-                pendingKbBtn = nil
-                kbBtn.Text      = "[none]"
-                kbBtn.TextColor3 = Theme.SubText
+                pendingKbBtn         = nil
+                kbBtn.Text           = "[none]"
+                kbBtn.TextColor3     = Theme.SubText
             else
                 if pendingKbBtn then
                     pendingKbBtn.Text      = "[none]"
                     pendingKbBtn.TextColor3 = Theme.SubText
                 end
-                pendingKbBtn = kbBtn
-                kbBtn.Text      = "..."
-                kbBtn.TextColor3 = Color3.fromRGB(230, 180, 60)
+                pendingKbBtn         = kbBtn
+                kbBtn.Text           = "..."
+                kbBtn.TextColor3     = Color3.fromRGB(230, 180, 60)
             end
         end)
-        kbBtn._toggle = function() setToggle(not state) end
-        kbBtn._name   = label
     end
 
     return function() return state end, setToggle
@@ -1605,8 +1608,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         if input.KeyCode == Enum.KeyCode.Escape or input.KeyCode == Enum.KeyCode.Unknown then
             pendingKbBtn.Text = "[none]"; pendingKbBtn.TextColor3 = Theme.SubText; pendingKbBtn = nil
         else
-            keybindMap[input.KeyCode] = pendingKbBtn._toggle
-            pendingKbBtn.Text = "[" .. input.KeyCode.Name .. "]"
+            local entry = kbBtnRegistry[pendingKbBtn]
+            if entry then keybindMap[input.KeyCode] = entry.toggle end
+            pendingKbBtn.Text      = "[" .. input.KeyCode.Name .. "]"
             pendingKbBtn.TextColor3 = Theme.Text
             pendingKbBtn = nil
         end
