@@ -5,7 +5,7 @@
     FIXED FOR: Project Real executor
 ]]
 
--- ─── SERVICES ────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ SERVICES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -18,7 +18,7 @@ local Lighting         = game:GetService("Lighting")
 local Camera      = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
--- ─── GUI PARENT (FIXED) ─────────────────────────────────────────────────────
+-- â”€â”€â”€ GUI PARENT (FIXED) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local function getGuiParent()
     if gethui then return gethui() end
     if syn and syn.protect_gui then
@@ -36,7 +36,7 @@ local function getGuiParent()
     return LocalPlayer:WaitForChild("PlayerGui")
 end
 
--- ─── THEME ───────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ THEME â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local Theme = {
     Accent     = Color3.fromRGB(59, 130, 246),
     Bg         = Color3.fromRGB(10, 10, 12),
@@ -51,7 +51,7 @@ local Theme = {
     Outline    = Color3.fromRGB(45,  45,  55),
 }
 
--- ─── SETTINGS ────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ SETTINGS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local S = {
     SilentAim        = false,
     SilentAutoShoot  = false,
@@ -94,7 +94,7 @@ local S = {
     DodgeRate        = 10,
     StrafeAmount     = 1,
     BackOff          = 0.45,
-    MaxDistance      = 800,
+    MaxDistance      = 360,
     MoveSpeed        = 20,
     Standoff         = 12,
     Fly              = false,
@@ -142,7 +142,7 @@ local S = {
     StyleAccentB     = 246,
 }
 
--- ─── CLEANUP ─────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ CLEANUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 pcall(function()
     for _, loc in ipairs({game:GetService("CoreGui"), LocalPlayer:FindFirstChild("PlayerGui")}) do
         pcall(function()
@@ -156,7 +156,7 @@ pcall(function()
     end
 end)
 
--- ─── UTILS ───────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ UTILS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local function tw(obj, t, props, style, dir)
     pcall(function()
         TweenService:Create(obj,
@@ -195,7 +195,7 @@ local function safeAutoSize(obj, prop, val)
     pcall(function() obj[prop] = val end)
 end
 
--- ─── SCREEN GUI ──────────────────────────────────────────────────────────────
+-- â”€â”€â”€ SCREEN GUI â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local guiParent = getGuiParent()
 local ScreenGui
 if guiParent:IsA("ScreenGui") then
@@ -210,7 +210,7 @@ ScreenGui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
 ScreenGui.DisplayOrder    = 999
 ScreenGui.IgnoreGuiInset  = true
 
--- ─── MAIN WINDOW ─────────────────────────────────────────────────────────────
+-- â”€â”€â”€ MAIN WINDOW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local MainFrame = Instance.new("Frame", ScreenGui)
 MainFrame.Name                = "Main"
 MainFrame.Size                = UDim2.new(0, 780, 0, 520)
@@ -250,7 +250,7 @@ local function makeDraggable(frame, handle)
 end
 makeDraggable(MainFrame, DragHandle)
 
--- ─── LEFT SIDEBAR ────────────────────────────────────────────────────────────
+-- â”€â”€â”€ LEFT SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local Sidebar = Instance.new("Frame", MainFrame)
 Sidebar.Name             = "Sidebar"
 Sidebar.Size             = UDim2.new(0, 160, 1, 0)
@@ -324,7 +324,7 @@ ContentArea.Position          = UDim2.new(0, 164, 0, 4)
 ContentArea.BackgroundTransparency = 1
 ContentArea.ClipsDescendants  = true
 
--- ─── TAB PAGES ───────────────────────────────────────────────────────────────
+-- â”€â”€â”€ TAB PAGES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local tabPages   = {}
 local navButtons = {}
 local activeNav  = "COMBAT"
@@ -433,7 +433,7 @@ end
 
 for i, cfg in ipairs(navConfig) do makeNavBtn(cfg, i) end
 
--- ─── SUBTAB SYSTEM ───────────────────────────────────────────────────────────
+-- â”€â”€â”€ SUBTAB SYSTEM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local function makeSubTabSystem(parentPage, tabs)
     local bar = Instance.new("Frame", parentPage)
     bar.Name             = "SubBar"
@@ -507,7 +507,7 @@ local function makeSubTabSystem(parentPage, tabs)
     return subPages
 end
 
--- ─── UI COMPONENT BUILDERS ───────────────────────────────────────────────────
+-- â”€â”€â”€ UI COMPONENT BUILDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local function makeSection(parent, title, order)
     local sec = Instance.new("Frame", parent)
     sec.Name             = title or "Section"
@@ -756,7 +756,7 @@ local function makeButton(parent, label, callback, order)
     return btn
 end
 
--- ─── COMBAT PAGE ─────────────────────────────────────────────────────────────
+-- â”€â”€â”€ COMBAT PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local combatSubs = makeSubTabSystem(tabPages["COMBAT"], {
     {id = "COMBAT_MAIN",  label = "Combat"},
     {id = "AIM_ASSIST",   label = "Aim Assist"},
@@ -829,7 +829,7 @@ do
     makeSlider(farmSec,  "Standoff",     0, 50,   12,  "",  function(v) S.Standoff    = v end, 14)
 end
 
--- ─── CHARACTER PAGE ──────────────────────────────────────────────────────────
+-- â”€â”€â”€ CHARACTER PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local charSubs = makeSubTabSystem(tabPages["CHARACTER"], {
     {id = "CHAR_BASIC",    label = "Character"},
     {id = "CHAR_COSMETICS",label = "Cosmetics"},
@@ -901,7 +901,7 @@ do
     noPreview.Size = UDim2.new(1, 0, 0, 60); noPreview.TextXAlignment = Enum.TextXAlignment.Center
 end
 
--- ─── VISUALS PAGE ────────────────────────────────────────────────────────────
+-- â”€â”€â”€ VISUALS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local visSubs = makeSubTabSystem(tabPages["VISUALS"], {
     {id = "VIS_MAIN",    label = "Visuals"},
     {id = "VIS_ESP",     label = "ESP"},
@@ -1002,14 +1002,14 @@ do
     makeSlider(hitChamsSec,  "Transparency", 0, 1, 0.5, "", nil, 4)
 end
 
--- ─── CHAT PAGE ───────────────────────────────────────────────────────────────
+-- â”€â”€â”€ CHAT PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 do
     local chatSec = makeSection(tabPages["CHAT"], "Chat", 1)
     local infoLbl = newLabel(chatSec, "Chat features coming soon", 11, Theme.SubText)
     infoLbl.Size = UDim2.new(1, 0, 0, 30); infoLbl.TextXAlignment = Enum.TextXAlignment.Center
 end
 
--- ─── SETTINGS PAGE ───────────────────────────────────────────────────────────
+-- â”€â”€â”€ SETTINGS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local settingsSubs = makeSubTabSystem(tabPages["SETTINGS"], {
     {id = "SET_CONFIG",  label = "Config"},
     {id = "SET_STYLING", label = "Styling"},
@@ -1118,7 +1118,7 @@ do
     makeToggle(themeSec, "Auto Load Theme", false, nil, 6, false)
 end
 
--- ─── FOV CIRCLE ──────────────────────────────────────────────────────────────
+-- â”€â”€â”€ FOV CIRCLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local fovFrame = Instance.new("Frame", ScreenGui)
 fovFrame.Name = "FOVCircle"; fovFrame.BackgroundTransparency = 1; fovFrame.ZIndex = 999
 local fovCircle = Instance.new("Frame", fovFrame)
@@ -1127,7 +1127,7 @@ corner(fovCircle, 100)
 local fovStroke = Instance.new("UIStroke", fovCircle)
 fovStroke.Color = Color3.fromRGB(255,255,255); fovStroke.Thickness = 1; fovStroke.Transparency = 0.3
 
--- ─── WATERMARK ───────────────────────────────────────────────────────────────
+-- â”€â”€â”€ WATERMARK â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local wmFrame = Instance.new("Frame", ScreenGui)
 wmFrame.Size = UDim2.new(0, 180, 0, 22); wmFrame.Position = UDim2.new(0, 12, 0, 12)
 wmFrame.BackgroundColor3 = Theme.Panel; wmFrame.BackgroundTransparency = 0.15
@@ -1136,7 +1136,7 @@ corner(wmFrame, 4); stroke(wmFrame, Theme.Accent, 1, 0.5)
 local wmText = newLabel(wmFrame, "Sou Hub | Urban Reload | 60 FPS", 9, Theme.SubText, Enum.Font.Code)
 wmText.Size = UDim2.new(1, -8, 1, 0); wmText.Position = UDim2.new(0, 6, 0, 0)
 
--- ─── ESP ─────────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ ESP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local hasDrawing = false
 pcall(function() local t = Drawing.new("Line"); t:Remove(); hasDrawing = true end)
 
@@ -1164,6 +1164,33 @@ local function createESP(name)
     hp.hpFg.Thickness = 3; hp.hpFg.Color = Color3.fromRGB(80,200,80); hp.hpFg.Visible = false
 end
 
+local function getCharacterBounds(char, root, head)
+    -- Karakterin gercek boyutunu hesapla (tum BasePart'larin CFrame'ini kullanarak)
+    local minY = root.Position.Y - 3
+    local maxY = (head and head.Position.Y or root.Position.Y) + 0.8
+    local halfWidth = 2.5 -- karakter genisligi yaklasik 5 stud
+
+    -- Karakter icindeki partlardan gercek boyut hesapla
+    pcall(function()
+        for _, part in ipairs(char:GetChildren()) do
+            if part:IsA("BasePart") then
+                local pos = part.Position
+                local sz = part.Size
+                local top = pos.Y + sz.Y / 2
+                local bot = pos.Y - sz.Y / 2
+                if top > maxY then maxY = top end
+                if bot < minY then minY = bot end
+            end
+        end
+    end)
+
+    -- Biraz padding ekle
+    maxY = maxY + 0.3
+    minY = minY - 0.2
+
+    return minY, maxY, halfWidth
+end
+
 local function updateESP()
     if not hasDrawing then return end
     for name in pairs(espObjects) do if not Players:FindFirstChild(name) then removeESP(name) end end
@@ -1177,17 +1204,39 @@ local function updateESP()
         if not hum or hum.Health <= 0 or not root then hideESP(plr.Name); continue end
         if not espObjects[plr.Name] then createESP(plr.Name) end
         local obj = espObjects[plr.Name]
-        local headPos = head and head.Position or (root.Position + Vector3.new(0,2,0))
-        local sp, onScreen = Camera:WorldToViewportPoint(headPos)
-        local topSP = Camera:WorldToViewportPoint(headPos + Vector3.new(0,1,0))
-        local botSP = Camera:WorldToViewportPoint(root.Position - Vector3.new(0,3,0))
-        local lSP   = Camera:WorldToViewportPoint(root.Position + Vector3.new(-1,1,0))
-        local rSP   = Camera:WorldToViewportPoint(root.Position + Vector3.new( 1,1,0))
+
         local dist = math.floor((Camera.CFrame.Position - root.Position).Magnitude)
-        if not onScreen or dist > 600 then hideESP(plr.Name); continue end
-        local cx   = (lSP.X + rSP.X) / 2
-        local half = math.abs(rSP.X - lSP.X) / 2
-        local topY = topSP.Y; local botY = botSP.Y
+        if dist > 600 then hideESP(plr.Name); continue end
+
+        -- Karakter boyutunu hesapla
+        local minY, maxY, halfWidth = getCharacterBounds(char, root, head)
+
+        -- 4 kose noktasini ekrana projekte et
+        local topPos = Vector3.new(root.Position.X, maxY, root.Position.Z)
+        local botPos = Vector3.new(root.Position.X, minY, root.Position.Z)
+
+        local topSP, onTop = Camera:WorldToViewportPoint(topPos)
+        local botSP, onBot = Camera:WorldToViewportPoint(botPos)
+
+        if not onTop and not onBot then hideESP(plr.Name); continue end
+
+        -- Box genisligini mesafeye gore hesapla (perspektif)
+        local leftWorld = root.Position + Camera.CFrame.RightVector * (-halfWidth)
+        local rightWorld = root.Position + Camera.CFrame.RightVector * halfWidth
+        local leftSP = Camera:WorldToViewportPoint(leftWorld)
+        local rightSP = Camera:WorldToViewportPoint(rightWorld)
+
+        local screenWidth = math.abs(rightSP.X - leftSP.X)
+        local half = math.max(screenWidth / 2, 8) -- minimum 8px genislik
+
+        local cx = (leftSP.X + rightSP.X) / 2
+        local topY = topSP.Y
+        local botY = botSP.Y
+        local boxH = botY - topY
+
+        -- Box cok kucuk veya ters ise gosterme
+        if boxH < 4 or boxH > 2000 then hideESP(plr.Name); continue end
+
         if S.BoundingBox then
             local w = Color3.fromRGB(255,255,255)
             obj.boxT.From = Vector2.new(cx-half, topY); obj.boxT.To = Vector2.new(cx+half, topY); obj.boxT.Color = w; obj.boxT.Visible = true
@@ -1196,7 +1245,6 @@ local function updateESP()
             obj.boxR.From = Vector2.new(cx+half, topY); obj.boxR.To = Vector2.new(cx+half, botY); obj.boxR.Color = w; obj.boxR.Visible = true
         else obj.boxT.Visible = false; obj.boxB.Visible = false; obj.boxL.Visible = false; obj.boxR.Visible = false end
         local hpPct = math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1)
-        local boxH = botY - topY
         if S.HealthBar and boxH > 4 then
             obj.hpBg.From = Vector2.new(cx-half-5, topY); obj.hpBg.To = Vector2.new(cx-half-5, botY); obj.hpBg.Visible = true
             obj.hpFg.From = Vector2.new(cx-half-5, topY + boxH*(1-hpPct)); obj.hpFg.To = Vector2.new(cx-half-5, botY)
@@ -1210,7 +1258,9 @@ local function updateESP()
     end
 end
 
--- ─── AIMBOT UTIL ─────────────────────────────────────────────────────────────
+-- â”€â”€â”€ AIMBOT UTIL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+local LOCK_MAX_DIST = 360 -- stud, maksimum lock mesafesi
+
 local function isDowned(char)
     if not char then return false end
     local fx = char:FindFirstChild("BodyEffects")
@@ -1232,6 +1282,7 @@ end
 local function getClosest()
     local cx = Camera.ViewportSize.X / 2; local cy = Camera.ViewportSize.Y / 2
     local fov = S.FOVRadius; local best, bestD = nil, math.huge
+    local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr == LocalPlayer then continue end
         local char = plr.Character; if not char then continue end
@@ -1240,6 +1291,13 @@ local function getClosest()
         local hum = char:FindFirstChildOfClass("Humanoid")
         if not hum or hum.Health <= 0 then continue end
         if isDowned(char) then continue end
+
+        -- Mesafe kontrolu (360 stud sinir)
+        if myRoot then
+            local worldDist = (myRoot.Position - part.Position).Magnitude
+            if worldDist > LOCK_MAX_DIST then continue end
+        end
+
         local sp, onScreen = Camera:WorldToViewportPoint(part.Position)
         if not onScreen then continue end
         local d = math.sqrt((sp.X-cx)^2 + (sp.Y-cy)^2)
@@ -1250,7 +1308,7 @@ local function getClosest()
     return best
 end
 
--- ─── SILENT AIM ──────────────────────────────────────────────────────────────
+-- â”€â”€â”€ SILENT AIM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 pcall(function()
     if not hookmetamethod then return end
     local _origIdx
@@ -1266,8 +1324,9 @@ pcall(function()
     end))
 end)
 
--- ─── INPUT ───────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ INPUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local locked = false
+local lockedTarget = nil -- Locklanmis hedef (sag tik ile)
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if pendingKbBtn and input.UserInputType == Enum.UserInputType.Keyboard then
@@ -1288,11 +1347,25 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         pcall(function() LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping) end)
     end
     if input.KeyCode == Enum.KeyCode.End then
-        S.Aimbot = false; S.SilentAim = false; S.TriggerBot = false; locked = false; S.CurrentTarget = nil; MainFrame.Visible = false
+        S.Aimbot = false; S.SilentAim = false; S.TriggerBot = false; locked = false; lockedTarget = nil; S.CurrentTarget = nil; MainFrame.Visible = false
+    end
+
+    -- Sag tik ile camlock toggle
+    if input.UserInputType == Enum.UserInputType.MouseButton2 and S.Aimbot then
+        if locked and lockedTarget then
+            -- Zaten lockluysa, birak
+            locked = false; lockedTarget = nil; S.CurrentTarget = nil
+        else
+            -- Lock: en yakin kisiyi bul ve lockla
+            local target = getClosest()
+            if target then
+                locked = true; lockedTarget = target; S.CurrentTarget = target
+            end
+        end
     end
 end)
 
--- ─── FLY (BodyVelocity - Project Real uyumlu) ────────────────────────────────
+-- â”€â”€â”€ FLY (BodyVelocity - Project Real uyumlu) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local flyBV, flyBG
 
 local function cleanFly()
@@ -1304,7 +1377,7 @@ local function cleanFly()
     end)
 end
 
--- ─── NOCLIP ──────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ NOCLIP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 RunService.Stepped:Connect(function()
     if not S.Noclip then return end
     local char = LocalPlayer.Character; if not char then return end
@@ -1313,7 +1386,7 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- ─── HEARTBEAT ───────────────────────────────────────────────────────────────
+-- â”€â”€â”€ HEARTBEAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 RunService.Heartbeat:Connect(function()
     local char = LocalPlayer.Character; if not char then return end
     local hum = char:FindFirstChildOfClass("Humanoid"); if not hum then return end
@@ -1324,7 +1397,7 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- ─── RENDER STEPPED ──────────────────────────────────────────────────────────
+-- â”€â”€â”€ RENDER STEPPED â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local fpsCount = 0; local fpsLast = tick(); local pingVal = 0
 
 RunService.RenderStepped:Connect(function()
@@ -1377,21 +1450,32 @@ RunService.RenderStepped:Connect(function()
         if flyBV then cleanFly() end
     end
 
-    -- AIMBOT
-    if not S.Aimbot then locked = false; S.CurrentTarget = nil; return end
-    S.CurrentTarget = getClosest()
-    locked = S.CurrentTarget ~= nil
-    if locked and S.CurrentTarget and S.CurrentTarget.Character then
-        local part = S.CurrentTarget.Character:FindFirstChild(S.AimbotPart) or S.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
-        if part then
-            local h = S.CurrentTarget.Character:FindFirstChildOfClass("Humanoid")
-            if h and h.Health > 0 then
-                local vel = Vector3.new()
-                pcall(function() vel = part.AssemblyLinearVelocity end)
-                local predicted = part.Position + vel * 0.05
-                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
-            end
+    -- AIMBOT (Camlock - sag tik toggle)
+    if not S.Aimbot then locked = false; lockedTarget = nil; S.CurrentTarget = nil; return end
+
+    -- Eger lock varsa, hedefin hala gecerli olup olmadigini kontrol et
+    if locked and lockedTarget then
+        local char = lockedTarget.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local part = char and (char:FindFirstChild(S.AimbotPart) or char:FindFirstChild("HumanoidRootPart"))
+        if not char or not hum or hum.Health <= 0 or not part or isDowned(char) then
+            -- Hedef oldu veya gecersiz, unlock
+            locked = false; lockedTarget = nil; S.CurrentTarget = nil
+            return
         end
+
+        -- Mesafe kontrolu - 360 stud uzerinde ise birak
+        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if myRoot and (myRoot.Position - part.Position).Magnitude > LOCK_MAX_DIST then
+            locked = false; lockedTarget = nil; S.CurrentTarget = nil
+            return
+        end
+
+        S.CurrentTarget = lockedTarget
+        local vel = Vector3.new()
+        pcall(function() vel = part.AssemblyLinearVelocity end)
+        local predicted = part.Position + vel * 0.05
+        Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
     end
 
     -- TRIGGER
@@ -1410,7 +1494,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- ─── CLEANUP ─────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ CLEANUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 Players.PlayerRemoving:Connect(function(plr) removeESP(plr.Name) end)
 
 pcall(function()
@@ -1418,7 +1502,7 @@ pcall(function()
     LocalPlayer.Idled:Connect(function() vu:CaptureController(); vu:ClickButton2(Vector2.new()) end)
 end)
 
--- ─── BOOT ────────────────────────────────────────────────────────────────────
+-- â”€â”€â”€ BOOT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 print("[SOU HUB] Urban Reload yuklendi! (Project Real Fixed)")
 
 task.spawn(function()
