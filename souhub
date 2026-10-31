@@ -108,6 +108,15 @@ local S = {
     Spinbot          = false,
     AutoStrafe       = false,
     LongJump         = false,
+    AntiRagdoll      = false,
+    InfiniteStamina  = false,
+    Fullbright       = false,
+    PlayerChams      = false,
+    PlayerChamsFill  = 0.5,
+    ChamsFillColor   = Color3.fromRGB(140, 0, 255),
+    GunChams         = false,
+    GunChamsMaterial = Enum.Material.Neon,
+    GunChamsColor    = Color3.fromRGB(0, 255, 255),
     ESPEnabled       = true,
     BoundingBox      = true,
     HealthBar        = true,
@@ -851,13 +860,9 @@ do
     makeToggle(basicSec, "Auto Strafe",     S.AutoStrafe,   function(v) S.AutoStrafe   = v end, 9, false)
     makeToggle(basicSec, "Long Jump",       S.LongJump,     function(v) S.LongJump     = v end, 10, false)
     local exploitSec = makeSection(rightCol, "Exploits", 1)
-    makeToggle(exploitSec, "Force Shiftlock", false, nil, 1, true)
-    makeToggle(exploitSec, "Angle Enhancer",  false, nil, 2, false)
-    makeToggle(exploitSec, "Anti Ragdoll",    false, nil, 3, false)
-    makeToggle(exploitSec, "Infinite Stamina",false, nil, 4, false)
-    makeToggle(exploitSec, "Sprint Speed",    false, nil, 5, false)
-    makeToggle(exploitSec, "Side Boost",      false, nil, 6, true)
-    makeToggle(exploitSec, "Roll Glide",      false, nil, 7, false)
+    makeToggle(exploitSec, "Anti Ragdoll",    S.AntiRagdoll,    function(v) S.AntiRagdoll    = v end, 1, false)
+    makeToggle(exploitSec, "Infinite Stamina",S.InfiniteStamina,function(v) S.InfiniteStamina = v end, 2, false)
+    makeToggle(exploitSec, "Fullbright",      S.Fullbright,     function(v) S.Fullbright = v; pcall(function() if v then Lighting.Brightness = 2; Lighting.ClockTime = 14; Lighting.FogEnd = 100000; Lighting.GlobalShadows = false; for _,e in ipairs(Lighting:GetChildren()) do if e:IsA("PostEffect") then e.Enabled = false end end else Lighting.Brightness = 1; Lighting.GlobalShadows = true; for _,e in ipairs(Lighting:GetChildren()) do if e:IsA("PostEffect") then e.Enabled = true end end end end) end, 3, false)
 end
 
 do
@@ -886,19 +891,26 @@ end
 do
     local p = charSubs["CHAR_WEAPONS"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-    local armorySec = makeSection(leftCol, "Armory", 1)
-    makeDropdown(armorySec, "Weapon", {"AK","M4","AWP","Pistol","Shotgun","SMG"}, "AK", nil, 1)
-    makeToggle(armorySec,   "Unlock All", false, nil, 2, false)
-    local spooferW = makeSection(leftCol, "Spoofers", 2)
-    makeDropdown(spooferW,  "Sights",      {"Default"}, "Default", nil, 1)
-    makeDropdown(spooferW,  "Muzzle",      {"Default"}, "Default", nil, 2)
-    makeDropdown(spooferW,  "Underbarrel", {"Default"}, "Default", nil, 3)
-    makeDropdown(spooferW,  "Magazine",    {"Default"}, "Default", nil, 4)
-    makeDropdown(spooferW,  "Stock",       {"Default"}, "Default", nil, 5)
-    makeDropdown(spooferW,  "Camo",        {"Default"}, "Default", nil, 6)
-    local previewSec = makeSection(rightCol, "Preview", 1)
-    local noPreview = newLabel(previewSec, "No preview available", 10, Theme.SubText)
-    noPreview.Size = UDim2.new(1, 0, 0, 60); noPreview.TextXAlignment = Enum.TextXAlignment.Center
+    local chamsSec = makeSection(leftCol, "Player Chams", 1)
+    makeToggle(chamsSec, "Enabled", S.PlayerChams, function(v) S.PlayerChams = v end, 1, false)
+    makeSlider(chamsSec, "Fill Transparency", 0, 1, 0.5, "", function(v) S.PlayerChamsFill = v end, 2)
+    makeDropdown(chamsSec, "Fill Color", {"Purple","Red","Green","Blue","Yellow","White","Cyan"}, "Purple", function(v)
+        local colors = {Purple=Color3.fromRGB(140,0,255), Red=Color3.fromRGB(255,0,0), Green=Color3.fromRGB(0,255,0), Blue=Color3.fromRGB(0,100,255), Yellow=Color3.fromRGB(255,255,0), White=Color3.fromRGB(255,255,255), Cyan=Color3.fromRGB(0,255,255)}
+        S.ChamsFillColor = colors[v] or Color3.fromRGB(140,0,255)
+    end, 3)
+    local gunChamsSec = makeSection(leftCol, "Gun Chams", 2)
+    makeToggle(gunChamsSec, "Enabled", S.GunChams, function(v) S.GunChams = v end, 1, false)
+    makeDropdown(gunChamsSec, "Material", {"Neon","ForceField","Glass","SmoothPlastic"}, "Neon", function(v)
+        local mats = {Neon=Enum.Material.Neon, ForceField=Enum.Material.ForceField, Glass=Enum.Material.Glass, SmoothPlastic=Enum.Material.SmoothPlastic}
+        S.GunChamsMaterial = mats[v] or Enum.Material.Neon
+    end, 2)
+    makeDropdown(gunChamsSec, "Color", {"Cyan","Red","Green","Purple","Yellow","White"}, "Cyan", function(v)
+        local colors = {Cyan=Color3.fromRGB(0,255,255), Red=Color3.fromRGB(255,0,0), Green=Color3.fromRGB(0,255,0), Purple=Color3.fromRGB(140,0,255), Yellow=Color3.fromRGB(255,255,0), White=Color3.fromRGB(255,255,255)}
+        S.GunChamsColor = colors[v] or Color3.fromRGB(0,255,255)
+    end, 3)
+    local infoSec = makeSection(rightCol, "Info", 1)
+    local infoLbl = newLabel(infoSec, "Player Chams: Highlights enemies through walls.\n\nGun Chams: Changes your weapon material/color.", 10, Theme.SubText)
+    infoLbl.Size = UDim2.new(1, 0, 0, 80); infoLbl.TextWrapped = true; infoLbl.TextXAlignment = Enum.TextXAlignment.Left
 end
 
 -- â”€â”€â”€ VISUALS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1157,7 +1169,7 @@ local function createESP(name)
     espObjects[name] = {
         boxT = line(), boxB = line(), boxL = line(), boxR = line(),
         hpBg = Drawing.new("Line"), hpFg = Drawing.new("Line"),
-        name = txt(12), dist = txt(11),
+        name = txt(12), dist = txt(11), weapon = txt(10),
     }
     local hp = espObjects[name]
     hp.hpBg.Thickness = 3; hp.hpBg.Color = Color3.fromRGB(50,50,50); hp.hpBg.Visible = false
@@ -1255,6 +1267,17 @@ local function updateESP()
         else obj.name.Visible = false end
         if S.ESPDistance then obj.dist.Text = dist .. "m"; obj.dist.Position = Vector2.new(cx, yOff); obj.dist.Color = Color3.fromRGB(180,180,180); obj.dist.Visible = true
         else obj.dist.Visible = false end
+        -- Weapon ESP
+        local weaponName = ""
+        pcall(function()
+            local equipped = char:FindFirstChildOfClass("Tool")
+            if equipped then weaponName = equipped.Name end
+        end)
+        if weaponName ~= "" then
+            obj.weapon.Text = "[" .. weaponName .. "]"; obj.weapon.Position = Vector2.new(cx, botY + 4); obj.weapon.Color = Color3.fromRGB(255,200,100); obj.weapon.Visible = true
+        else
+            obj.weapon.Visible = false
+        end
     end
 end
 
@@ -1326,7 +1349,6 @@ end)
 
 -- â”€â”€â”€ INPUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local locked = false
-local lockedTarget = nil -- Locklanmis hedef (sag tik ile)
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if pendingKbBtn and input.UserInputType == Enum.UserInputType.Keyboard then
@@ -1347,21 +1369,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         pcall(function() LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping) end)
     end
     if input.KeyCode == Enum.KeyCode.End then
-        S.Aimbot = false; S.SilentAim = false; S.TriggerBot = false; locked = false; lockedTarget = nil; S.CurrentTarget = nil; MainFrame.Visible = false
-    end
-
-    -- Sag tik ile camlock toggle
-    if input.UserInputType == Enum.UserInputType.MouseButton2 and S.Aimbot then
-        if locked and lockedTarget then
-            -- Zaten lockluysa, birak
-            locked = false; lockedTarget = nil; S.CurrentTarget = nil
-        else
-            -- Lock: en yakin kisiyi bul ve lockla
-            local target = getClosest()
-            if target then
-                locked = true; lockedTarget = target; S.CurrentTarget = target
-            end
-        end
+        S.Aimbot = false; S.SilentAim = false; S.TriggerBot = false; locked = false; S.CurrentTarget = nil; MainFrame.Visible = false
     end
 end)
 
@@ -1386,6 +1394,76 @@ RunService.Stepped:Connect(function()
     end
 end)
 
+-- â”€â”€â”€ PLAYER CHAMS (Highlight Instance) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+local chamsHolder = Instance.new("Folder")
+chamsHolder.Name = "SOUHUB_Chams"
+pcall(function() chamsHolder.Parent = game:GetService("CoreGui") end)
+if not chamsHolder.Parent then chamsHolder.Parent = ScreenGui end
+
+local function updatePlayerChams()
+    for _, h in ipairs(chamsHolder:GetChildren()) do
+        if not Players:FindFirstChild(h.Name) then h:Destroy() end
+    end
+    if not S.PlayerChams then chamsHolder:ClearAllChildren(); return end
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr == LocalPlayer then continue end
+        local char = plr.Character
+        if not char then local old = chamsHolder:FindFirstChild(plr.Name); if old then old:Destroy() end; continue end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum or hum.Health <= 0 then local old = chamsHolder:FindFirstChild(plr.Name); if old then old:Destroy() end; continue end
+        local existing = chamsHolder:FindFirstChild(plr.Name)
+        if existing then
+            pcall(function() existing.FillColor = S.ChamsFillColor; existing.FillTransparency = S.PlayerChamsFill; if existing.Adornee ~= char then existing.Adornee = char end end)
+        else
+            pcall(function()
+                local hl = Instance.new("Highlight"); hl.Name = plr.Name; hl.Adornee = char
+                hl.FillColor = S.ChamsFillColor; hl.OutlineColor = Color3.fromRGB(255,255,255)
+                hl.FillTransparency = S.PlayerChamsFill; hl.OutlineTransparency = 0
+                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop; hl.Parent = chamsHolder
+            end)
+        end
+    end
+end
+
+-- â”€â”€â”€ GUN CHAMS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+local function updateGunChams()
+    if not S.GunChams then return end
+    pcall(function()
+        local char = LocalPlayer.Character; if not char then return end
+        for _, item in ipairs(char:GetChildren()) do
+            if item:IsA("Tool") then
+                for _, part in ipairs(item:GetDescendants()) do
+                    if part:IsA("BasePart") then part.Material = S.GunChamsMaterial; part.Color = S.GunChamsColor end
+                end
+            end
+        end
+        local cam = workspace.CurrentCamera
+        if cam then
+            for _, child in ipairs(cam:GetChildren()) do
+                if child:IsA("Model") then
+                    for _, part in ipairs(child:GetDescendants()) do
+                        if part:IsA("BasePart") then part.Material = S.GunChamsMaterial; part.Color = S.GunChamsColor end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- â”€â”€â”€ ANTI RAGDOLL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+RunService.Stepped:Connect(function()
+    if not S.AntiRagdoll then return end
+    pcall(function()
+        local char = LocalPlayer.Character; if not char then return end
+        local hum = char:FindFirstChildOfClass("Humanoid"); if not hum then return end
+        local state = hum:GetState()
+        if state == Enum.HumanoidStateType.Ragdoll or state == Enum.HumanoidStateType.FallingDown then
+            hum:ChangeState(Enum.HumanoidStateType.GettingUp)
+        end
+        if not S.Fly then hum.PlatformStand = false end
+    end)
+end)
+
 -- â”€â”€â”€ HEARTBEAT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 RunService.Heartbeat:Connect(function()
     local char = LocalPlayer.Character; if not char then return end
@@ -1395,6 +1473,16 @@ RunService.Heartbeat:Connect(function()
     if S.InfiniteJump and hum:GetState() == Enum.HumanoidStateType.Freefall then
         if UserInputService:IsKeyDown(Enum.KeyCode.Space) then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
     end
+    -- Infinite Stamina
+    if S.InfiniteStamina then
+        pcall(function()
+            local data = LocalPlayer:FindFirstChild("Data")
+            if data then local stam = data:FindFirstChild("Stamina"); if stam then stam.Value = 100 end end
+            if char:GetAttribute("Stamina") then char:SetAttribute("Stamina", 100) end
+            local fx = char:FindFirstChild("BodyEffects")
+            if fx then local stam = fx:FindFirstChild("Stamina"); if stam then stam.Value = 100 end end
+        end)
+    end
 end)
 
 -- â”€â”€â”€ RENDER STEPPED â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1402,6 +1490,8 @@ local fpsCount = 0; local fpsLast = tick(); local pingVal = 0
 
 RunService.RenderStepped:Connect(function()
     pcall(updateESP)
+    pcall(updatePlayerChams)
+    pcall(updateGunChams)
 
     -- FOV
     fovFrame.Visible = S.FOVVisible and S.AimbotFOV
@@ -1450,32 +1540,21 @@ RunService.RenderStepped:Connect(function()
         if flyBV then cleanFly() end
     end
 
-    -- AIMBOT (Camlock - sag tik toggle)
-    if not S.Aimbot then locked = false; lockedTarget = nil; S.CurrentTarget = nil; return end
-
-    -- Eger lock varsa, hedefin hala gecerli olup olmadigini kontrol et
-    if locked and lockedTarget then
-        local char = lockedTarget.Character
-        local hum = char and char:FindFirstChildOfClass("Humanoid")
-        local part = char and (char:FindFirstChild(S.AimbotPart) or char:FindFirstChild("HumanoidRootPart"))
-        if not char or not hum or hum.Health <= 0 or not part or isDowned(char) then
-            -- Hedef oldu veya gecersiz, unlock
-            locked = false; lockedTarget = nil; S.CurrentTarget = nil
-            return
+    -- AIMBOT (Auto camlock - en yakin kisiyi her frame takip eder)
+    if not S.Aimbot then locked = false; S.CurrentTarget = nil; return end
+    S.CurrentTarget = getClosest()
+    locked = S.CurrentTarget ~= nil
+    if locked and S.CurrentTarget and S.CurrentTarget.Character then
+        local part = S.CurrentTarget.Character:FindFirstChild(S.AimbotPart) or S.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
+        if part then
+            local h = S.CurrentTarget.Character:FindFirstChildOfClass("Humanoid")
+            if h and h.Health > 0 then
+                local vel = Vector3.new()
+                pcall(function() vel = part.AssemblyLinearVelocity end)
+                local predicted = part.Position + vel * 0.05
+                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
+            end
         end
-
-        -- Mesafe kontrolu - 360 stud uzerinde ise birak
-        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if myRoot and (myRoot.Position - part.Position).Magnitude > LOCK_MAX_DIST then
-            locked = false; lockedTarget = nil; S.CurrentTarget = nil
-            return
-        end
-
-        S.CurrentTarget = lockedTarget
-        local vel = Vector3.new()
-        pcall(function() vel = part.AssemblyLinearVelocity end)
-        local predicted = part.Position + vel * 0.05
-        Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
     end
 
     -- TRIGGER
@@ -1495,7 +1574,10 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- â”€â”€â”€ CLEANUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-Players.PlayerRemoving:Connect(function(plr) removeESP(plr.Name) end)
+Players.PlayerRemoving:Connect(function(plr)
+    removeESP(plr.Name)
+    pcall(function() local h = chamsHolder:FindFirstChild(plr.Name); if h then h:Destroy() end end)
+end)
 
 pcall(function()
     local vu = game:GetService("VirtualUser")
