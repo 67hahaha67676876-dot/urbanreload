@@ -2,6 +2,7 @@
     SOU HUB - Urban Reload
     lang: Lua, file: SOU_HUB_UrbanReload.lua, target: Roblox executor
     game: Urban Reload
+    FIXED FOR: Project Real executor
 ]]
 
 -- ─── SERVICES ────────────────────────────────────────────────────────────────
@@ -17,7 +18,7 @@ local Lighting         = game:GetService("Lighting")
 local Camera      = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
--- ─── GUI PARENT ──────────────────────────────────────────────────────────────
+-- ─── GUI PARENT (FIXED) ─────────────────────────────────────────────────────
 local function getGuiParent()
     if gethui then return gethui() end
     if syn and syn.protect_gui then
@@ -34,9 +35,10 @@ local function getGuiParent()
     if ok then return game:GetService("CoreGui") end
     return LocalPlayer:WaitForChild("PlayerGui")
 end
+
 -- ─── THEME ───────────────────────────────────────────────────────────────────
 local Theme = {
-    Accent     = Color3.fromRGB(59, 130, 246),   -- blue
+    Accent     = Color3.fromRGB(59, 130, 246),
     Bg         = Color3.fromRGB(10, 10, 12),
     Sidebar    = Color3.fromRGB(14, 14, 17),
     Panel      = Color3.fromRGB(20, 20, 24),
@@ -51,7 +53,6 @@ local Theme = {
 
 -- ─── SETTINGS ────────────────────────────────────────────────────────────────
 local S = {
-    -- combat / silent aim
     SilentAim        = false,
     SilentAutoShoot  = false,
     SilentFOV        = true,
@@ -59,8 +60,6 @@ local S = {
     SilentHitChance  = 100,
     SilentWallCheck  = true,
     SilentAliveCheck = true,
-
-    -- combat / aimbot
     Aimbot           = true,
     AimbotFOV        = true,
     AimbotPart       = "Head",
@@ -69,16 +68,12 @@ local S = {
     AimbotSmoothing  = 0.35,
     AimbotWallCheck  = true,
     AimbotAliveCheck = true,
-
-    -- combat / triggerbot
     TriggerBot       = false,
     TriggerFOV       = false,
     TriggerPart      = "Head",
     TriggerReaction  = 0.5,
     TriggerWall      = true,
     TriggerAlive     = true,
-
-    -- combat / exploits
     NoRecoil         = true,
     NoSpread         = true,
     FireRate         = false,
@@ -88,8 +83,6 @@ local S = {
     NoBoltDelay      = true,
     ShootThroughRolls = true,
     InstantEquip     = true,
-
-    -- autofarm
     Autofarm         = false,
     AutofarmPriority = "Closest, Shooter, Lowest Health",
     SlowOnWarning    = true,
@@ -104,9 +97,8 @@ local S = {
     MaxDistance      = 800,
     MoveSpeed        = 20,
     Standoff         = 12,
-
-    -- character / basic
     Fly              = false,
+    FlySpeed         = 60,
     Noclip           = false,
     WalkSpeed        = false,
     WalkSpeedVal     = 16,
@@ -116,16 +108,12 @@ local S = {
     Spinbot          = false,
     AutoStrafe       = false,
     LongJump         = false,
-
-    -- visuals / esp
     ESPEnabled       = true,
     BoundingBox      = true,
     HealthBar        = true,
     ESPName          = true,
     ESPDistance      = true,
     ESPTeam          = true,
-
-    -- visuals / world esp
     SafeZones        = false,
     FarmZones        = false,
     ATMs             = false,
@@ -135,22 +123,16 @@ local S = {
     Armory           = false,
     Cases            = false,
     Airdrops         = false,
-
-    -- hit effects
     HitNotify        = false,
     HitSound         = true,
     HitSoundName     = "Mario 2",
     HitOverlay       = true,
     DisableHitmarker = true,
     DisableDmgNums   = true,
-
-    -- settings
     MenuBind         = Enum.KeyCode.RightBracket,
     Watermark        = false,
     FOVRadius        = 150,
     FOVVisible       = true,
-
-    -- runtime
     CurrentTarget    = nil,
     SelectedPlayers  = {},
     AimbotActive     = false,
@@ -161,11 +143,13 @@ local S = {
 }
 
 -- ─── CLEANUP ─────────────────────────────────────────────────────────────────
-for _, loc in ipairs({game:GetService("CoreGui"), LocalPlayer:FindFirstChild("PlayerGui")}) do
-    pcall(function()
-        local o = loc and loc:FindFirstChild("SOUHUB_UR"); if o then o:Destroy() end
-    end)
-end
+pcall(function()
+    for _, loc in ipairs({game:GetService("CoreGui"), LocalPlayer:FindFirstChild("PlayerGui")}) do
+        pcall(function()
+            local o = loc and loc:FindFirstChild("SOUHUB_UR"); if o then o:Destroy() end
+        end)
+    end
+end)
 pcall(function()
     if gethui then
         local o = gethui():FindFirstChild("SOUHUB_UR"); if o then o:Destroy() end
@@ -174,9 +158,11 @@ end)
 
 -- ─── UTILS ───────────────────────────────────────────────────────────────────
 local function tw(obj, t, props, style, dir)
-    TweenService:Create(obj,
-        TweenInfo.new(t or 0.18, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out),
-        props):Play()
+    pcall(function()
+        TweenService:Create(obj,
+            TweenInfo.new(t or 0.18, style or Enum.EasingStyle.Quint, dir or Enum.EasingDirection.Out),
+            props):Play()
+    end)
 end
 
 local function corner(parent, radius)
@@ -205,6 +191,10 @@ local function newLabel(parent, text, size, color, font, xAlign)
     return l
 end
 
+local function safeAutoSize(obj, prop, val)
+    pcall(function() obj[prop] = val end)
+end
+
 -- ─── SCREEN GUI ──────────────────────────────────────────────────────────────
 local guiParent = getGuiParent()
 local ScreenGui
@@ -231,7 +221,6 @@ MainFrame.Visible             = false
 corner(MainFrame, 8)
 stroke(MainFrame, Theme.Outline, 1, 0.4)
 
--- drag
 local DragHandle = Instance.new("Frame", MainFrame)
 DragHandle.Size               = UDim2.new(1, 0, 0, 40)
 DragHandle.BackgroundTransparency = 1
@@ -269,7 +258,6 @@ Sidebar.BackgroundColor3 = Theme.Sidebar
 Sidebar.BorderSizePixel  = 0
 corner(Sidebar, 8)
 
--- logo area
 local LogoArea = Instance.new("Frame", Sidebar)
 LogoArea.Size               = UDim2.new(1, 0, 0, 70)
 LogoArea.BackgroundTransparency = 1
@@ -297,14 +285,12 @@ local HubSub = newLabel(LogoArea, "Urban Reload", 10, Theme.SubText, Enum.Font.G
 HubSub.Size     = UDim2.new(1, -60, 0, 14)
 HubSub.Position = UDim2.new(0, 56, 0.5, 2)
 
--- separator
 local sep = Instance.new("Frame", Sidebar)
 sep.Size             = UDim2.new(1, -20, 0, 1)
 sep.Position         = UDim2.new(0, 10, 0, 70)
 sep.BackgroundColor3 = Theme.Outline
 sep.BorderSizePixel  = 0
 
--- nav scroll
 local NavScroll = Instance.new("ScrollingFrame", Sidebar)
 NavScroll.Size                  = UDim2.new(1, 0, 1, -78)
 NavScroll.Position              = UDim2.new(0, 0, 0, 78)
@@ -312,7 +298,7 @@ NavScroll.BackgroundTransparency = 1
 NavScroll.BorderSizePixel       = 0
 NavScroll.ScrollBarThickness    = 0
 NavScroll.CanvasSize            = UDim2.new(0, 0, 0, 0)
-NavScroll.AutomaticCanvasSize   = Enum.AutomaticSize.Y
+safeAutoSize(NavScroll, "AutomaticCanvasSize", Enum.AutomaticSize.Y)
 
 local navLayout = Instance.new("UIListLayout", NavScroll)
 navLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -322,16 +308,15 @@ navPad.PaddingLeft  = UDim.new(0, 8)
 navPad.PaddingRight = UDim.new(0, 8)
 navPad.PaddingTop   = UDim.new(0, 6)
 
--- nav categories
+-- ASCII icons (Unicode replaced for executor compat)
 local navConfig = {
-    {id = "COMBAT",    icon = "⊕", label = "Combat"},
-    {id = "CHARACTER", icon = "✦", label = "Character"},
-    {id = "VISUALS",   icon = "◎", label = "Visuals"},
-    {id = "CHAT",      icon = "◈", label = "Chat"},
-    {id = "SETTINGS",  icon = "⚙", label = "Settings"},
+    {id = "COMBAT",    icon = "+", label = "Combat"},
+    {id = "CHARACTER", icon = "*", label = "Character"},
+    {id = "VISUALS",   icon = "o", label = "Visuals"},
+    {id = "CHAT",      icon = "#", label = "Chat"},
+    {id = "SETTINGS",  icon = "@", label = "Settings"},
 }
 
--- content area
 local ContentArea = Instance.new("Frame", MainFrame)
 ContentArea.Name              = "Content"
 ContentArea.Size              = UDim2.new(1, -168, 1, -8)
@@ -353,7 +338,7 @@ local function makePage(id)
     page.ScrollBarThickness     = 2
     page.ScrollBarImageColor3   = Theme.Accent
     page.CanvasSize             = UDim2.new(0, 0, 0, 0)
-    page.AutomaticCanvasSize    = Enum.AutomaticSize.Y
+    safeAutoSize(page, "AutomaticCanvasSize", Enum.AutomaticSize.Y)
     page.Visible                = false
     page.Active                 = true
     local layout = Instance.new("UIListLayout", page)
@@ -404,13 +389,13 @@ local function makeNavBtn(cfg, i)
 
     btn.MouseEnter:Connect(function()
         if activeNav ~= cfg.id then
-            tw(btn,     0.12, {BackgroundTransparency = 0.6, BackgroundColor3 = Theme.Section})
+            tw(btn, 0.12, {BackgroundTransparency = 0.6, BackgroundColor3 = Theme.Section})
             tw(nameLbl, 0.12, {TextColor3 = Theme.Text})
         end
     end)
     btn.MouseLeave:Connect(function()
         if activeNav ~= cfg.id then
-            tw(btn,     0.12, {BackgroundTransparency = 1})
+            tw(btn, 0.12, {BackgroundTransparency = 1})
             tw(nameLbl, 0.12, {TextColor3 = Theme.SubText})
         end
     end)
@@ -422,17 +407,14 @@ local function makeNavBtn(cfg, i)
         tabPages[cfg.id].Visible = true
 
         for _, c in ipairs(navConfig) do
-            local b   = navButtons[c.id]
-            local ind = b:FindFirstChildOfClass("Frame")
-            local nl  = b:FindFirstChildOfClass("TextLabel")
-            local il  = b:FindFirstChild("TextLabel")
+            local b = navButtons[c.id]
             local active = (c.id == cfg.id)
-            if ind then
-                ind.Visible = active
-                tw(ind, 0.18, {Size = active and UDim2.new(0,3,0,18) or UDim2.new(0,3,0,0)})
-            end
-            -- find labels by name position
+            -- update indicator + labels
             for _, child in ipairs(b:GetChildren()) do
+                if child:IsA("Frame") and child.Name ~= "Main" then
+                    child.Visible = active
+                    tw(child, 0.18, {Size = active and UDim2.new(0,3,0,18) or UDim2.new(0,3,0,0)})
+                end
                 if child:IsA("TextLabel") then
                     if child.Position.X.Offset == 36 then
                         tw(child, 0.12, {TextColor3 = active and Theme.Text or Theme.SubText})
@@ -452,11 +434,7 @@ end
 for i, cfg in ipairs(navConfig) do makeNavBtn(cfg, i) end
 
 -- ─── SUBTAB SYSTEM ───────────────────────────────────────────────────────────
--- each page has subtabs rendered at the top
-local subTabContainers = {}  -- [pageId] = {bar, pages={}}
-
 local function makeSubTabSystem(parentPage, tabs)
-    -- tab bar
     local bar = Instance.new("Frame", parentPage)
     bar.Name             = "SubBar"
     bar.Size             = UDim2.new(1, 0, 0, 32)
@@ -475,14 +453,11 @@ local function makeSubTabSystem(parentPage, tabs)
     barPad.PaddingTop    = UDim.new(0, 4)
     barPad.PaddingBottom = UDim.new(0, 4)
 
-    -- content holder — a regular frame with children per sub-tab
-    -- each sub-tab gets its own ScrollingFrame inside parentPage
     local subPages = {}
     local subBtns  = {}
     local activeSub = tabs[1].id
 
     for i, tab in ipairs(tabs) do
-        -- subtab button
         local sbtn = Instance.new("TextButton", bar)
         sbtn.Name                   = "Sub_" .. tab.id
         sbtn.Size                   = UDim2.new(1/#tabs, -4, 1, 0)
@@ -497,13 +472,12 @@ local function makeSubTabSystem(parentPage, tabs)
         corner(sbtn, 4)
         subBtns[tab.id] = sbtn
 
-        -- sub page (just a frame with UIListLayout, inside parentPage's scroll)
         local sp = Instance.new("Frame", parentPage)
         sp.Name             = "SubPage_" .. tab.id
         sp.Size             = UDim2.new(1, 0, 0, 0)
         sp.BackgroundTransparency = 1
         sp.BorderSizePixel  = 0
-        sp.AutomaticSize    = Enum.AutomaticSize.Y
+        safeAutoSize(sp, "AutomaticSize", Enum.AutomaticSize.Y)
         sp.Visible          = (i == 1)
         sp.LayoutOrder      = i
 
@@ -534,19 +508,16 @@ local function makeSubTabSystem(parentPage, tabs)
 end
 
 -- ─── UI COMPONENT BUILDERS ───────────────────────────────────────────────────
-
--- section box
 local function makeSection(parent, title, order)
     local sec = Instance.new("Frame", parent)
     sec.Name             = title or "Section"
     sec.Size             = UDim2.new(1, 0, 0, 0)
     sec.BackgroundColor3 = Theme.Section
     sec.BorderSizePixel  = 0
-    sec.AutomaticSize    = Enum.AutomaticSize.Y
+    safeAutoSize(sec, "AutomaticSize", Enum.AutomaticSize.Y)
     sec.LayoutOrder      = order or 0
     corner(sec, 6)
 
-    -- section header
     local hdr = Instance.new("Frame", sec)
     hdr.Name             = "Header"
     hdr.Size             = UDim2.new(1, 0, 0, 28)
@@ -563,7 +534,7 @@ local function makeSection(parent, title, order)
     body.Size             = UDim2.new(1, 0, 0, 0)
     body.Position         = UDim2.new(0, 0, 0, 28)
     body.BackgroundTransparency = 1
-    body.AutomaticSize    = Enum.AutomaticSize.Y
+    safeAutoSize(body, "AutomaticSize", Enum.AutomaticSize.Y)
 
     local bodyLayout = Instance.new("UIListLayout", body)
     bodyLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -578,12 +549,11 @@ local function makeSection(parent, title, order)
     return body
 end
 
--- two-column layout wrapper
 local function makeTwoCol(parent, order)
     local wrapper = Instance.new("Frame", parent)
     wrapper.Size               = UDim2.new(1, 0, 0, 0)
     wrapper.BackgroundTransparency = 1
-    wrapper.AutomaticSize      = Enum.AutomaticSize.Y
+    safeAutoSize(wrapper, "AutomaticSize", Enum.AutomaticSize.Y)
     wrapper.LayoutOrder        = order or 0
 
     local layout = Instance.new("UIListLayout", wrapper)
@@ -594,7 +564,7 @@ local function makeTwoCol(parent, order)
     local left = Instance.new("Frame", wrapper)
     left.Size               = UDim2.new(0.5, -3, 0, 0)
     left.BackgroundTransparency = 1
-    left.AutomaticSize      = Enum.AutomaticSize.Y
+    safeAutoSize(left, "AutomaticSize", Enum.AutomaticSize.Y)
     local ll = Instance.new("UIListLayout", left)
     ll.SortOrder = Enum.SortOrder.LayoutOrder
     ll.Padding   = UDim.new(0, 6)
@@ -602,7 +572,7 @@ local function makeTwoCol(parent, order)
     local right = Instance.new("Frame", wrapper)
     right.Size              = UDim2.new(0.5, -3, 0, 0)
     right.BackgroundTransparency = 1
-    right.AutomaticSize     = Enum.AutomaticSize.Y
+    safeAutoSize(right, "AutomaticSize", Enum.AutomaticSize.Y)
     local rl = Instance.new("UIListLayout", right)
     rl.SortOrder = Enum.SortOrder.LayoutOrder
     rl.Padding   = UDim.new(0, 6)
@@ -610,30 +580,25 @@ local function makeTwoCol(parent, order)
     return left, right
 end
 
--- row (label + control on right)
 local function makeRow(parent, label, order)
     local row = Instance.new("Frame", parent)
     row.Name             = label or "Row"
     row.Size             = UDim2.new(1, 0, 0, 28)
     row.BackgroundTransparency = 1
     row.LayoutOrder      = order or 0
-
     local lbl = newLabel(row, label or "", 11, Theme.SubText)
     lbl.Size     = UDim2.new(0.55, 0, 1, 0)
     lbl.Position = UDim2.new(0, 0, 0, 0)
-
     return row, lbl
 end
 
 -- toggle
 local pendingKbBtn  = nil
-local keybindMap    = {}   -- [KeyCode] = callback fn
--- separate registry keyed by btn reference (not attribute)
-local kbBtnRegistry = {}   -- [TextButton] = {toggle=fn, name=str}
+local keybindMap    = {}
+local kbBtnRegistry = {}
 
 local function makeToggle(parent, label, default, onChange, order, keybindKey)
     local row, lbl = makeRow(parent, label, order)
-
     local kbBtn
     if keybindKey then
         kbBtn = Instance.new("TextButton", row)
@@ -649,7 +614,6 @@ local function makeToggle(parent, label, default, onChange, order, keybindKey)
         kbBtn.AutoButtonColor    = false
         corner(kbBtn, 3)
     end
-
     local track = Instance.new("TextButton", row)
     track.Size               = UDim2.new(0, 30, 0, 16)
     track.Position           = UDim2.new(1, -30, 0.5, -8)
@@ -658,16 +622,13 @@ local function makeToggle(parent, label, default, onChange, order, keybindKey)
     track.Text               = ""
     track.AutoButtonColor    = false
     corner(track, 8)
-
     local knob = Instance.new("Frame", track)
     knob.Size             = UDim2.new(0, 12, 0, 12)
     knob.Position         = default and UDim2.new(1,-14,0.5,-6) or UDim2.new(0,2,0.5,-6)
     knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     knob.BorderSizePixel  = 0
     corner(knob, 6)
-
     local state = default or false
-
     local function setToggle(val)
         state = val
         tw(track, 0.15, {BackgroundColor3 = state and Theme.Accent or Theme.Inactive})
@@ -675,193 +636,120 @@ local function makeToggle(parent, label, default, onChange, order, keybindKey)
         lbl.TextColor3 = state and Theme.Text or Theme.SubText
         if onChange then onChange(state) end
     end
-
     track.MouseButton1Click:Connect(function() setToggle(not state) end)
-
     if kbBtn then
-        -- store in registry table, not as instance attribute
         kbBtnRegistry[kbBtn] = {toggle = function() setToggle(not state) end, name = label}
-
         kbBtn.MouseButton1Click:Connect(function()
             if pendingKbBtn == kbBtn then
-                pendingKbBtn         = nil
-                kbBtn.Text           = "[none]"
-                kbBtn.TextColor3     = Theme.SubText
+                pendingKbBtn = nil; kbBtn.Text = "[none]"; kbBtn.TextColor3 = Theme.SubText
             else
-                if pendingKbBtn then
-                    pendingKbBtn.Text      = "[none]"
-                    pendingKbBtn.TextColor3 = Theme.SubText
-                end
-                pendingKbBtn         = kbBtn
-                kbBtn.Text           = "..."
-                kbBtn.TextColor3     = Color3.fromRGB(230, 180, 60)
+                if pendingKbBtn then pendingKbBtn.Text = "[none]"; pendingKbBtn.TextColor3 = Theme.SubText end
+                pendingKbBtn = kbBtn; kbBtn.Text = "..."; kbBtn.TextColor3 = Color3.fromRGB(230, 180, 60)
             end
         end)
     end
-
     return function() return state end, setToggle
 end
 
 -- slider
 local function makeSlider(parent, label, min, max, default, suffix, onChange, order)
     local container = Instance.new("Frame", parent)
-    container.Name             = label or "Slider"
-    container.Size             = UDim2.new(1, 0, 0, 38)
-    container.BackgroundTransparency = 1
-    container.LayoutOrder      = order or 0
-
+    container.Name = label or "Slider"; container.Size = UDim2.new(1, 0, 0, 38)
+    container.BackgroundTransparency = 1; container.LayoutOrder = order or 0
     local lbl = newLabel(container, label or "", 11, Theme.SubText)
-    lbl.Size     = UDim2.new(0.6, 0, 0, 16)
-    lbl.Position = UDim2.new(0, 0, 0, 0)
-
+    lbl.Size = UDim2.new(0.6, 0, 0, 16); lbl.Position = UDim2.new(0, 0, 0, 0)
     local valLbl = newLabel(container, tostring(default) .. (suffix or ""), 11, Theme.Text, Enum.Font.GothamBold, Enum.TextXAlignment.Right)
-    valLbl.Size     = UDim2.new(0.4, 0, 0, 16)
-    valLbl.Position = UDim2.new(0.6, 0, 0, 0)
-
+    valLbl.Size = UDim2.new(0.4, 0, 0, 16); valLbl.Position = UDim2.new(0.6, 0, 0, 0)
     local track = Instance.new("TextButton", container)
-    track.Size               = UDim2.new(1, 0, 0, 4)
-    track.Position           = UDim2.new(0, 0, 0, 22)
-    track.BackgroundColor3   = Theme.Button
-    track.BorderSizePixel    = 0
-    track.Text               = ""
-    track.AutoButtonColor    = false
+    track.Size = UDim2.new(1, 0, 0, 4); track.Position = UDim2.new(0, 0, 0, 22)
+    track.BackgroundColor3 = Theme.Button; track.BorderSizePixel = 0; track.Text = ""; track.AutoButtonColor = false
     corner(track, 2)
-
     local fill = Instance.new("Frame", track)
-    fill.Size             = UDim2.new((default - min) / (max - min), 0, 1, 0)
-    fill.BackgroundColor3 = Theme.Accent
-    fill.BorderSizePixel  = 0
+    fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0); fill.BackgroundColor3 = Theme.Accent; fill.BorderSizePixel = 0
     corner(fill, 2)
-
-    local knob = Instance.new("Frame", track)
-    knob.Size             = UDim2.new(0, 10, 0, 10)
-    knob.AnchorPoint      = Vector2.new(0.5, 0.5)
-    knob.Position         = UDim2.new((default - min) / (max - min), 0, 0.5, 0)
-    knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    knob.BorderSizePixel  = 0
-    corner(knob, 5)
-
-    local value   = default
-    local sliding = false
-
+    local knob2 = Instance.new("Frame", track)
+    knob2.Size = UDim2.new(0, 10, 0, 10); knob2.AnchorPoint = Vector2.new(0.5, 0.5)
+    knob2.Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0)
+    knob2.BackgroundColor3 = Color3.fromRGB(255, 255, 255); knob2.BorderSizePixel = 0
+    corner(knob2, 5)
+    local value = default; local sliding = false
     local function update(px)
         local ax, as = track.AbsolutePosition.X, track.AbsoluteSize.X
         if as == 0 then return end
         local p = math.clamp((px - ax) / as, 0, 1)
         value = math.floor(min + (max - min) * p * 100 + 0.5) / 100
         if max - min >= 10 then value = math.round(value) end
-        tw(fill,  0.05, {Size = UDim2.new(p, 0, 1, 0)})
-        tw(knob,  0.05, {Position = UDim2.new(p, 0, 0.5, 0)})
+        tw(fill, 0.05, {Size = UDim2.new(p, 0, 1, 0)})
+        tw(knob2, 0.05, {Position = UDim2.new(p, 0, 0.5, 0)})
         valLbl.Text = tostring(value) .. (suffix or "")
         if onChange then onChange(value) end
     end
-
     track.MouseButton1Down:Connect(function(x) sliding = true; update(x) end)
     UserInputService.InputChanged:Connect(function(input)
-        if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
-            update(input.Position.X)
-        end
+        if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then update(input.Position.X) end
     end)
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then sliding = false end
     end)
-
     return function() return value end
 end
 
--- dropdown / cycle
+-- dropdown
 local function makeDropdown(parent, label, options, default, onChange, order)
     local idx = 1
     for i, v in ipairs(options) do if v == default then idx = i; break end end
-
     local container = Instance.new("Frame", parent)
-    container.Name             = label or "Dropdown"
-    container.Size             = UDim2.new(1, 0, 0, 28)
-    container.BackgroundTransparency = 1
-    container.LayoutOrder      = order or 0
-
+    container.Name = label or "Dropdown"; container.Size = UDim2.new(1, 0, 0, 28)
+    container.BackgroundTransparency = 1; container.LayoutOrder = order or 0
     if label and label ~= "" then
         local lbl = newLabel(container, label, 11, Theme.SubText)
-        lbl.Size     = UDim2.new(1, 0, 0, 14)
-        lbl.Position = UDim2.new(0, 0, 0, 0)
+        lbl.Size = UDim2.new(1, 0, 0, 14); lbl.Position = UDim2.new(0, 0, 0, 0)
     end
-
     local btn = Instance.new("TextButton", container)
-    btn.Size               = UDim2.new(1, 0, 0, (label and label ~= "") and 20 or 28)
-    btn.Position           = UDim2.new(0, 0, 0, (label and label ~= "") and 14 or 0)
-    btn.BackgroundColor3   = Theme.Button
-    btn.BackgroundTransparency = 0.2
-    btn.BorderSizePixel    = 0
-    btn.Text               = ""
-    btn.AutoButtonColor    = false
-    corner(btn, 4)
-    stroke(btn, Theme.Outline, 1, 0.5)
-
+    btn.Size = UDim2.new(1, 0, 0, (label and label ~= "") and 20 or 28)
+    btn.Position = UDim2.new(0, 0, 0, (label and label ~= "") and 14 or 0)
+    btn.BackgroundColor3 = Theme.Button; btn.BackgroundTransparency = 0.2
+    btn.BorderSizePixel = 0; btn.Text = ""; btn.AutoButtonColor = false
+    corner(btn, 4); stroke(btn, Theme.Outline, 1, 0.5)
     local valLbl = newLabel(btn, options[idx], 10, Theme.Text)
-    valLbl.Size     = UDim2.new(1, -20, 1, 0)
-    valLbl.Position = UDim2.new(0, 8, 0, 0)
-
-    local arrow = newLabel(btn, "▾", 10, Theme.SubText, Enum.Font.GothamBold, Enum.TextXAlignment.Right)
-    arrow.Size     = UDim2.new(0, 18, 1, 0)
-    arrow.Position = UDim2.new(1, -18, 0, 0)
-
+    valLbl.Size = UDim2.new(1, -20, 1, 0); valLbl.Position = UDim2.new(0, 8, 0, 0)
+    local arrow = newLabel(btn, "v", 10, Theme.SubText, Enum.Font.GothamBold, Enum.TextXAlignment.Right)
+    arrow.Size = UDim2.new(0, 18, 1, 0); arrow.Position = UDim2.new(1, -18, 0, 0)
     btn.MouseButton1Click:Connect(function()
-        idx = idx % #options + 1
-        valLbl.Text = options[idx]
+        idx = idx % #options + 1; valLbl.Text = options[idx]
         if onChange then onChange(options[idx]) end
     end)
-
     return function() return options[idx] end
 end
 
--- color swatch (click cycles preset colors)
+-- color swatch
 local PRESET_COLORS = {
-    Color3.fromRGB(59, 130, 246),
-    Color3.fromRGB(200, 30, 30),
-    Color3.fromRGB(80, 200, 130),
-    Color3.fromRGB(230, 180, 60),
-    Color3.fromRGB(180, 80, 220),
-    Color3.fromRGB(255, 255, 255),
+    Color3.fromRGB(59,130,246), Color3.fromRGB(200,30,30), Color3.fromRGB(80,200,130),
+    Color3.fromRGB(230,180,60), Color3.fromRGB(180,80,220), Color3.fromRGB(255,255,255),
 }
 local function makeColorSwatch(parent, default, onChange)
     local cidx = 1
     for i, c in ipairs(PRESET_COLORS) do if c == default then cidx = i; break end end
-
     local swatch = Instance.new("TextButton", parent)
-    swatch.Size               = UDim2.new(0, 18, 0, 18)
-    swatch.BackgroundColor3   = PRESET_COLORS[cidx]
-    swatch.BorderSizePixel    = 0
-    swatch.Text               = ""
-    swatch.AutoButtonColor    = false
-    corner(swatch, 3)
-    stroke(swatch, Theme.Outline, 1, 0.3)
-
+    swatch.Size = UDim2.new(0, 18, 0, 18); swatch.BackgroundColor3 = PRESET_COLORS[cidx]
+    swatch.BorderSizePixel = 0; swatch.Text = ""; swatch.AutoButtonColor = false
+    corner(swatch, 3); stroke(swatch, Theme.Outline, 1, 0.3)
     swatch.MouseButton1Click:Connect(function()
-        cidx = cidx % #PRESET_COLORS + 1
-        swatch.BackgroundColor3 = PRESET_COLORS[cidx]
+        cidx = cidx % #PRESET_COLORS + 1; swatch.BackgroundColor3 = PRESET_COLORS[cidx]
         if onChange then onChange(PRESET_COLORS[cidx]) end
     end)
-
     return function() return PRESET_COLORS[cidx] end
 end
 
 -- button
 local function makeButton(parent, label, callback, order)
     local btn = Instance.new("TextButton", parent)
-    btn.Name               = label or "Button"
-    btn.Size               = UDim2.new(1, 0, 0, 28)
-    btn.BackgroundColor3   = Theme.Button
-    btn.BackgroundTransparency = 0.2
-    btn.BorderSizePixel    = 0
-    btn.Text               = label or ""
-    btn.TextColor3         = Theme.Text
-    btn.TextSize           = 11
-    btn.Font               = Enum.Font.GothamMedium
-    btn.AutoButtonColor    = false
-    btn.LayoutOrder        = order or 0
-    corner(btn, 4)
-    stroke(btn, Theme.Outline, 1, 0.5)
-
+    btn.Name = label or "Button"; btn.Size = UDim2.new(1, 0, 0, 28)
+    btn.BackgroundColor3 = Theme.Button; btn.BackgroundTransparency = 0.2
+    btn.BorderSizePixel = 0; btn.Text = label or ""; btn.TextColor3 = Theme.Text
+    btn.TextSize = 11; btn.Font = Enum.Font.GothamMedium; btn.AutoButtonColor = false
+    btn.LayoutOrder = order or 0
+    corner(btn, 4); stroke(btn, Theme.Outline, 1, 0.5)
     btn.MouseEnter:Connect(function() tw(btn, 0.1, {BackgroundTransparency = 0}) end)
     btn.MouseLeave:Connect(function() tw(btn, 0.1, {BackgroundTransparency = 0.2}) end)
     btn.MouseButton1Click:Connect(function() if callback then callback() end end)
@@ -875,14 +763,9 @@ local combatSubs = makeSubTabSystem(tabPages["COMBAT"], {
     {id = "AUTOFARM",     label = "Autofarm"},
 })
 
--- Combat > Combat
 do
     local p = combatSubs["COMBAT_MAIN"]
-
-    -- two col
     local leftCol, rightCol = makeTwoCol(p, 1)
-
-    -- left: Silent Aim
     local silentSec = makeSection(leftCol, "Silent Aim", 1)
     makeToggle(silentSec, "Enabled",       S.SilentAim,        function(v) S.SilentAim        = v end, 1, true)
     makeToggle(silentSec, "Auto Shoot",    S.SilentAutoShoot,  function(v) S.SilentAutoShoot  = v end, 2, false)
@@ -891,8 +774,6 @@ do
     makeSlider(silentSec,  "Hit Chance",   0, 100, 100, "", function(v) S.SilentHitChance = v end, 5)
     makeToggle(silentSec,  "Wall Check",   S.SilentWallCheck,  function(v) S.SilentWallCheck  = v end, 6, false)
     makeToggle(silentSec,  "Alive Check",  S.SilentAliveCheck, function(v) S.SilentAliveCheck = v end, 7, false)
-
-    -- exploits under left
     local exploitSec = makeSection(leftCol, "Exploits", 2)
     makeToggle(exploitSec, "No Recoil",          S.NoRecoil,   function(v) S.NoRecoil   = v end, 1, false)
     makeToggle(exploitSec, "No Spread",           S.NoSpread,   function(v) S.NoSpread   = v end, 2, false)
@@ -901,8 +782,6 @@ do
     makeToggle(exploitSec, "No Bolt Delay",       S.NoBoltDelay, function(v) S.NoBoltDelay = v end, 5, false)
     makeToggle(exploitSec, "Shoot Through Rolls", S.ShootThroughRolls, function(v) S.ShootThroughRolls = v end, 6, false)
     makeToggle(exploitSec, "Instant Equip",       S.InstantEquip, function(v) S.InstantEquip = v end, 7, false)
-
-    -- right: Aimbot
     local aimbotSec = makeSection(rightCol, "Aimbot", 1)
     makeToggle(aimbotSec,  "Enabled",      S.Aimbot,           function(v) S.Aimbot           = v end, 1, true)
     makeToggle(aimbotSec,  "Use FOV",      S.AimbotFOV,        function(v) S.AimbotFOV        = v end, 2, false)
@@ -912,8 +791,6 @@ do
     makeSlider(aimbotSec,  "Smoothing",    0, 1,  0.35, "",   function(v) S.AimbotSmoothing = v end, 6)
     makeToggle(aimbotSec,  "Wall Check",   S.AimbotWallCheck,  function(v) S.AimbotWallCheck  = v end, 7, false)
     makeToggle(aimbotSec,  "Alive Check",  S.AimbotAliveCheck, function(v) S.AimbotAliveCheck = v end, 8, false)
-
-    -- right: Triggerbot
     local trigSec = makeSection(rightCol, "Triggerbot", 2)
     makeToggle(trigSec,   "Enabled",      S.TriggerBot,       function(v) S.TriggerBot   = v end, 1, true)
     makeToggle(trigSec,   "Use FOV",      S.TriggerFOV,       function(v) S.TriggerFOV   = v end, 2, false)
@@ -923,7 +800,6 @@ do
     makeToggle(trigSec,   "Alive Check",  S.TriggerAlive,     function(v) S.TriggerAlive  = v end, 6, false)
 end
 
--- Combat > Aim Assist (stub — game-side assist)
 do
     local p = combatSubs["AIM_ASSIST"]
     local leftCol, rightCol = makeTwoCol(p, 1)
@@ -934,17 +810,11 @@ do
     makeSlider(tunSec, "Smoothing", 0, 1, 0.3, "", nil, 2)
 end
 
--- Combat > Autofarm
 do
     local p = combatSubs["AUTOFARM"]
     local farmSec = makeSection(p, "Autofarm", 1)
     makeToggle(farmSec, "Enabled", S.Autofarm, function(v) S.Autofarm = v end, 1, true)
-    makeDropdown(farmSec, "Priority", {
-        "Closest, Shooter, Lowest Health",
-        "Closest",
-        "Lowest Health",
-        "Shooter First",
-    }, S.AutofarmPriority, function(v) S.AutofarmPriority = v end, 2)
+    makeDropdown(farmSec, "Priority", {"Closest, Shooter, Lowest Health","Closest","Lowest Health","Shooter First"}, S.AutofarmPriority, function(v) S.AutofarmPriority = v end, 2)
     makeToggle(farmSec,  "Slow On Warning",   S.SlowOnWarning,   function(v) S.SlowOnWarning   = v end, 3, false)
     makeToggle(farmSec,  "Vulnerable Check",  S.VulnerableCheck, function(v) S.VulnerableCheck = v end, 4, false)
     makeToggle(farmSec,  "Switch Target",     S.SwitchTarget,    function(v) S.SwitchTarget    = v end, 5, false)
@@ -959,18 +829,16 @@ do
     makeSlider(farmSec,  "Standoff",     0, 50,   12,  "",  function(v) S.Standoff    = v end, 14)
 end
 
--- ─── CHARACTER PAGE ───────────────────────────────────────────────────────────
+-- ─── CHARACTER PAGE ──────────────────────────────────────────────────────────
 local charSubs = makeSubTabSystem(tabPages["CHARACTER"], {
     {id = "CHAR_BASIC",    label = "Character"},
     {id = "CHAR_COSMETICS",label = "Cosmetics"},
     {id = "CHAR_WEAPONS",  label = "Weapons"},
 })
 
--- Character > Basic
 do
-    local p = combatSubs and charSubs["CHAR_BASIC"]
+    local p = charSubs["CHAR_BASIC"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local basicSec = makeSection(leftCol, "Basic", 1)
     makeToggle(basicSec, "Fly",             S.Fly,          function(v) S.Fly          = v end, 1, true)
     makeToggle(basicSec, "Noclip",          S.Noclip,       function(v) S.Noclip       = v end, 2, false)
@@ -982,7 +850,6 @@ do
     makeToggle(basicSec, "Spinbot",         S.Spinbot,      function(v) S.Spinbot      = v end, 8, false)
     makeToggle(basicSec, "Auto Strafe",     S.AutoStrafe,   function(v) S.AutoStrafe   = v end, 9, false)
     makeToggle(basicSec, "Long Jump",       S.LongJump,     function(v) S.LongJump     = v end, 10, false)
-
     local exploitSec = makeSection(rightCol, "Exploits", 1)
     makeToggle(exploitSec, "Force Shiftlock", false, nil, 1, true)
     makeToggle(exploitSec, "Angle Enhancer",  false, nil, 2, false)
@@ -993,16 +860,13 @@ do
     makeToggle(exploitSec, "Roll Glide",      false, nil, 7, false)
 end
 
--- Character > Cosmetics
 do
     local p = charSubs["CHAR_COSMETICS"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local wardrobeSec = makeSection(leftCol, "Wardrobe", 1)
     makeToggle(wardrobeSec, "Skin Changer",    false, nil, 1, false)
     makeToggle(wardrobeSec, "Unlock All",      false, nil, 2, false)
     makeToggle(wardrobeSec, "No Restrictions", false, nil, 3, false)
-
     local spooferL = makeSection(leftCol, "Spoofers", 2)
     makeDropdown(spooferL,  "Body",  {"None","Slim","Normal","Wide"}, "None", nil, 1)
     makeDropdown(spooferL,  "Hair",  {"None","Short","Long","Curly"}, "None", nil, 2)
@@ -1010,7 +874,6 @@ do
     makeDropdown(spooferL,  "Glasses",{"None"}, "None", nil, 4)
     makeDropdown(spooferL,  "Masks", {"None"}, "None", nil, 5)
     makeDropdown(spooferL,  "Makeup",{"None"}, "None", nil, 6)
-
     local spooferR = makeSection(rightCol, "Spoofers (Top)", 1)
     makeDropdown(spooferR,  "Tops",     {"None"}, "None", nil, 1)
     makeDropdown(spooferR,  "Hoodies",  {"None"}, "None", nil, 2)
@@ -1020,15 +883,12 @@ do
     makeDropdown(spooferR,  "Shoes",    {"None"}, "None", nil, 6)
 end
 
--- Character > Weapons
 do
     local p = charSubs["CHAR_WEAPONS"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local armorySec = makeSection(leftCol, "Armory", 1)
     makeDropdown(armorySec, "Weapon", {"AK","M4","AWP","Pistol","Shotgun","SMG"}, "AK", nil, 1)
     makeToggle(armorySec,   "Unlock All", false, nil, 2, false)
-
     local spooferW = makeSection(leftCol, "Spoofers", 2)
     makeDropdown(spooferW,  "Sights",      {"Default"}, "Default", nil, 1)
     makeDropdown(spooferW,  "Muzzle",      {"Default"}, "Default", nil, 2)
@@ -1036,14 +896,12 @@ do
     makeDropdown(spooferW,  "Magazine",    {"Default"}, "Default", nil, 4)
     makeDropdown(spooferW,  "Stock",       {"Default"}, "Default", nil, 5)
     makeDropdown(spooferW,  "Camo",        {"Default"}, "Default", nil, 6)
-
     local previewSec = makeSection(rightCol, "Preview", 1)
     local noPreview = newLabel(previewSec, "No preview available", 10, Theme.SubText)
-    noPreview.Size     = UDim2.new(1, 0, 0, 60)
-    noPreview.TextXAlignment = Enum.TextXAlignment.Center
+    noPreview.Size = UDim2.new(1, 0, 0, 60); noPreview.TextXAlignment = Enum.TextXAlignment.Center
 end
 
--- ─── VISUALS PAGE ─────────────────────────────────────────────────────────────
+-- ─── VISUALS PAGE ────────────────────────────────────────────────────────────
 local visSubs = makeSubTabSystem(tabPages["VISUALS"], {
     {id = "VIS_MAIN",    label = "Visuals"},
     {id = "VIS_ESP",     label = "ESP"},
@@ -1051,55 +909,44 @@ local visSubs = makeSubTabSystem(tabPages["VISUALS"], {
     {id = "VIS_HIT",     label = "Hit Effects"},
 })
 
--- Visuals > Visuals
 do
     local p = visSubs["VIS_MAIN"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local gunSec = makeSection(leftCol, "Gun", 1)
-    makeToggle(gunSec, "Offset",  false, nil, 1, true)
+    makeToggle(gunSec, "Offset", false, nil, 1, true)
     makeButton(gunSec, "Reset Offset", nil, 2)
     makeToggle(gunSec, "Animate", false, nil, 3, true)
-
     local tracerSec = makeSection(leftCol, "Bullet Tracers", 2)
-    makeToggle(tracerSec, "Enabled",  false, nil, 1, false)
+    makeToggle(tracerSec, "Enabled", false, nil, 1, false)
     makeDropdown(tracerSec,"Texture", {"Default","Beam","Laser"}, "Default", nil, 2)
-
     local chamsSec = makeSection(rightCol, "Gun Chams", 1)
-    makeToggle(chamsSec, "Enabled",      true, nil, 1, false)
-    makeToggle(chamsSec, "Through Walls",false, nil, 2, false)
-
+    makeToggle(chamsSec, "Enabled", true, nil, 1, false)
+    makeToggle(chamsSec, "Through Walls", false, nil, 2, false)
     local crosshairSec = makeSection(rightCol, "Crosshair", 2)
-    makeToggle(crosshairSec, "Enabled",              false, nil, 1, false)
+    makeToggle(crosshairSec, "Enabled", false, nil, 1, false)
     makeToggle(crosshairSec, "Disable Ingame Crosshair", false, nil, 2, false)
-    makeToggle(crosshairSec, "Dot",                  false, nil, 3, false)
+    makeToggle(crosshairSec, "Dot", false, nil, 3, false)
     makeDropdown(crosshairSec,"Method", {"Screen","World"}, "Screen", nil, 4)
 end
 
--- Visuals > ESP
 do
     local p = visSubs["VIS_ESP"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local espSec = makeSection(leftCol, "Settings", 1)
-    makeToggle(espSec,   "Enabled",      S.ESPEnabled,  function(v) S.ESPEnabled  = v end, 1, false)
-    makeToggle(espSec,   "Bounding Box", S.BoundingBox, function(v) S.BoundingBox = v end, 2, false)
-    makeToggle(espSec,   "Box Fill",     false,         nil, 3, false)
-    makeToggle(espSec,   "Dynamic",      false,         nil, 4, false)
-    makeToggle(espSec,   "Box Glow",     false,         nil, 5, false)
-    makeToggle(espSec,   "Health Bar",   S.HealthBar,   function(v) S.HealthBar   = v end, 6, false)
-    makeToggle(espSec,   "Name",         S.ESPName,     function(v) S.ESPName     = v end, 7, false)
-    makeToggle(espSec,   "Distance",     S.ESPDistance, function(v) S.ESPDistance = v end, 8, false)
-    makeToggle(espSec,   "Team",         S.ESPTeam,     function(v) S.ESPTeam     = v end, 9, false)
-
-    -- preview panel
+    makeToggle(espSec, "Enabled",      S.ESPEnabled,  function(v) S.ESPEnabled  = v end, 1, false)
+    makeToggle(espSec, "Bounding Box", S.BoundingBox, function(v) S.BoundingBox = v end, 2, false)
+    makeToggle(espSec, "Box Fill",     false,         nil, 3, false)
+    makeToggle(espSec, "Dynamic",      false,         nil, 4, false)
+    makeToggle(espSec, "Box Glow",     false,         nil, 5, false)
+    makeToggle(espSec, "Health Bar",   S.HealthBar,   function(v) S.HealthBar   = v end, 6, false)
+    makeToggle(espSec, "Name",         S.ESPName,     function(v) S.ESPName     = v end, 7, false)
+    makeToggle(espSec, "Distance",     S.ESPDistance, function(v) S.ESPDistance = v end, 8, false)
+    makeToggle(espSec, "Team",         S.ESPTeam,     function(v) S.ESPTeam     = v end, 9, false)
     local prevSec = makeSection(rightCol, "Preview", 1)
     local prevLbl = newLabel(prevSec, "Player\n[Team]\n100m", 10, Theme.SubText)
-    prevLbl.Size = UDim2.new(1, 0, 0, 60)
-    prevLbl.TextXAlignment = Enum.TextXAlignment.Center
+    prevLbl.Size = UDim2.new(1, 0, 0, 60); prevLbl.TextXAlignment = Enum.TextXAlignment.Center
 end
 
--- Visuals > World ESP
 do
     local p = visSubs["VIS_WORLD"]
     local locSec = makeSection(p, "Locations", 1)
@@ -1114,54 +961,40 @@ do
     makeToggle(locSec, "Airdrops",    S.Airdrops,   function(v) S.Airdrops   = v end, 9, false)
 end
 
--- Visuals > Hit Effects
 do
     local p = visSubs["VIS_HIT"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local hitNotifySec = makeSection(leftCol, "Hit Notify", 1)
     makeToggle(hitNotifySec, "Enabled",     S.HitNotify, function(v) S.HitNotify = v end, 1, false)
     makeToggle(hitNotifySec, "Custom Text", false,       nil, 2, false)
     local templateRow = Instance.new("Frame", hitNotifySec)
-    templateRow.Size               = UDim2.new(1, 0, 0, 24)
-    templateRow.BackgroundTransparency = 1
-    templateRow.LayoutOrder        = 3
+    templateRow.Size = UDim2.new(1, 0, 0, 24); templateRow.BackgroundTransparency = 1; templateRow.LayoutOrder = 3
     local templateBox = Instance.new("TextBox", templateRow)
-    templateBox.Size               = UDim2.new(1, 0, 1, 0)
-    templateBox.BackgroundColor3   = Theme.Button
-    templateBox.BackgroundTransparency = 0.3
-    templateBox.BorderSizePixel    = 0
-    templateBox.Text               = "hit {player} for {damage}"
-    templateBox.PlaceholderText    = "Template..."
-    templateBox.PlaceholderColor3  = Theme.SubText
-    templateBox.TextColor3         = Theme.Text
-    templateBox.TextSize           = 10
-    templateBox.Font               = Enum.Font.Gotham
-    templateBox.ClearTextOnFocus   = false
+    templateBox.Size = UDim2.new(1, 0, 1, 0); templateBox.BackgroundColor3 = Theme.Button
+    templateBox.BackgroundTransparency = 0.3; templateBox.BorderSizePixel = 0
+    templateBox.Text = "hit {player} for {damage}"; templateBox.PlaceholderText = "Template..."
+    templateBox.PlaceholderColor3 = Theme.SubText; templateBox.TextColor3 = Theme.Text
+    templateBox.TextSize = 10; templateBox.Font = Enum.Font.Gotham; templateBox.ClearTextOnFocus = false
     corner(templateBox, 3)
-
     local hitSoundSec = makeSection(leftCol, "Hit Sound", 2)
     makeToggle(hitSoundSec, "Enabled", S.HitSound, function(v) S.HitSound = v end, 1, false)
     makeDropdown(hitSoundSec, "Sound", {"Mario 2","Quake","Metal","Bubble"}, "Mario 2", function(v) S.HitSoundName = v end, 2)
-
     local hitOverlaySec = makeSection(leftCol, "Hit Overlay", 3)
     makeToggle(hitOverlaySec, "Enabled", S.HitOverlay, function(v) S.HitOverlay = v end, 1, false)
     makeSlider(hitOverlaySec, "Lifetime",    0, 1, 0.35,"s",  nil, 2)
     makeSlider(hitOverlaySec, "Transparency",0, 1, 0.55, "",  nil, 3)
     makeSlider(hitOverlaySec, "Size",        0, 1, 0.22, "",  nil, 4)
-
     local disableSec = makeSection(rightCol, "Disable", 1)
     makeToggle(disableSec, "Hitmarker",      S.DisableHitmarker,  function(v) S.DisableHitmarker  = v end, 1, false)
     makeToggle(disableSec, "Damage Numbers", S.DisableDmgNums,    function(v) S.DisableDmgNums    = v end, 2, false)
-    makeToggle(disableSec, "Kill Flash",     false,               nil, 3, false)
-    makeToggle(disableSec, "Blood",          false,               nil, 4, false)
-    makeToggle(disableSec, "Hit Sound",      false,               nil, 5, false)
-    makeToggle(disableSec, "Bullet Tracers", false,               nil, 6, false)
-    makeToggle(disableSec, "Impact FX",      false,               nil, 7, false)
-    makeToggle(disableSec, "Kill Effect",    false,               nil, 8, false)
-    makeToggle(disableSec, "Reload Sound",   false,               nil, 9, false)
-    makeToggle(disableSec, "Muzzle Flash",   false,               nil, 10, false)
-
+    makeToggle(disableSec, "Kill Flash",     false, nil, 3, false)
+    makeToggle(disableSec, "Blood",          false, nil, 4, false)
+    makeToggle(disableSec, "Hit Sound",      false, nil, 5, false)
+    makeToggle(disableSec, "Bullet Tracers", false, nil, 6, false)
+    makeToggle(disableSec, "Impact FX",      false, nil, 7, false)
+    makeToggle(disableSec, "Kill Effect",    false, nil, 8, false)
+    makeToggle(disableSec, "Reload Sound",   false, nil, 9, false)
+    makeToggle(disableSec, "Muzzle Flash",   false, nil, 10, false)
     local hitChamsSec = makeSection(rightCol, "Hit Chams", 2)
     makeToggle(hitChamsSec, "Enabled", true, nil, 1, false)
     makeSlider(hitChamsSec, "Duration", 0, 5, 2, "s", nil, 2)
@@ -1169,283 +1002,161 @@ do
     makeSlider(hitChamsSec,  "Transparency", 0, 1, 0.5, "", nil, 4)
 end
 
--- ─── SETTINGS PAGE ────────────────────────────────────────────────────────────
+-- ─── CHAT PAGE ───────────────────────────────────────────────────────────────
+do
+    local chatSec = makeSection(tabPages["CHAT"], "Chat", 1)
+    local infoLbl = newLabel(chatSec, "Chat features coming soon", 11, Theme.SubText)
+    infoLbl.Size = UDim2.new(1, 0, 0, 30); infoLbl.TextXAlignment = Enum.TextXAlignment.Center
+end
+
+-- ─── SETTINGS PAGE ───────────────────────────────────────────────────────────
 local settingsSubs = makeSubTabSystem(tabPages["SETTINGS"], {
     {id = "SET_CONFIG",  label = "Config"},
     {id = "SET_STYLING", label = "Styling"},
 })
 
--- Settings > Config
 do
     local p = settingsSubs["SET_CONFIG"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local configSec = makeSection(leftCol, "Configs", 1)
     local configBox = Instance.new("TextBox", configSec)
-    configBox.Size               = UDim2.new(1, 0, 0, 60)
-    configBox.BackgroundColor3   = Theme.Button
-    configBox.BackgroundTransparency = 0.3
-    configBox.BorderSizePixel    = 0
-    configBox.Text               = ""
-    configBox.PlaceholderText    = "Config list..."
-    configBox.PlaceholderColor3  = Theme.SubText
-    configBox.TextColor3         = Theme.Text
-    configBox.TextSize           = 10
-    configBox.Font               = Enum.Font.Gotham
-    configBox.ClearTextOnFocus   = false
-    configBox.LayoutOrder        = 1
-    corner(configBox, 4)
-
+    configBox.Size = UDim2.new(1, 0, 0, 60); configBox.BackgroundColor3 = Theme.Button
+    configBox.BackgroundTransparency = 0.3; configBox.BorderSizePixel = 0
+    configBox.Text = ""; configBox.PlaceholderText = "Config list..."
+    configBox.PlaceholderColor3 = Theme.SubText; configBox.TextColor3 = Theme.Text
+    configBox.TextSize = 10; configBox.Font = Enum.Font.Gotham; configBox.ClearTextOnFocus = false
+    configBox.LayoutOrder = 1; corner(configBox, 4)
     local nameBox = Instance.new("TextBox", configSec)
-    nameBox.Size               = UDim2.new(1, 0, 0, 24)
-    nameBox.BackgroundColor3   = Theme.Button
-    nameBox.BackgroundTransparency = 0.3
-    nameBox.BorderSizePixel    = 0
-    nameBox.Text               = ""
-    nameBox.PlaceholderText    = "Name..."
-    nameBox.PlaceholderColor3  = Theme.SubText
-    nameBox.TextColor3         = Theme.Text
-    nameBox.TextSize           = 10
-    nameBox.Font               = Enum.Font.Gotham
-    nameBox.ClearTextOnFocus   = false
-    nameBox.LayoutOrder        = 2
-    corner(nameBox, 4)
-
+    nameBox.Size = UDim2.new(1, 0, 0, 24); nameBox.BackgroundColor3 = Theme.Button
+    nameBox.BackgroundTransparency = 0.3; nameBox.BorderSizePixel = 0
+    nameBox.Text = ""; nameBox.PlaceholderText = "Name..."
+    nameBox.PlaceholderColor3 = Theme.SubText; nameBox.TextColor3 = Theme.Text
+    nameBox.TextSize = 10; nameBox.Font = Enum.Font.Gotham; nameBox.ClearTextOnFocus = false
+    nameBox.LayoutOrder = 2; corner(nameBox, 4)
     local saveBtnRow = Instance.new("Frame", configSec)
-    saveBtnRow.Size               = UDim2.new(1, 0, 0, 28)
-    saveBtnRow.BackgroundTransparency = 1
-    saveBtnRow.LayoutOrder        = 3
+    saveBtnRow.Size = UDim2.new(1, 0, 0, 28); saveBtnRow.BackgroundTransparency = 1; saveBtnRow.LayoutOrder = 3
     local saveBtnLayout = Instance.new("UIListLayout", saveBtnRow)
-    saveBtnLayout.FillDirection = Enum.FillDirection.Horizontal
-    saveBtnLayout.Padding       = UDim.new(0, 4)
-    saveBtnLayout.SortOrder     = Enum.SortOrder.LayoutOrder
-
-    local function makeHalfBtn(parent, text, cb, order)
-        local b = Instance.new("TextButton", parent)
-        b.Size               = UDim2.new(0.5, -2, 1, 0)
-        b.BackgroundColor3   = Theme.Button
-        b.BackgroundTransparency = 0.2
-        b.BorderSizePixel    = 0
-        b.Text               = text
-        b.TextColor3         = Theme.Text
-        b.TextSize           = 10
-        b.Font               = Enum.Font.GothamMedium
-        b.AutoButtonColor    = false
-        b.LayoutOrder        = order
-        corner(b, 4)
-        b.MouseButton1Click:Connect(function() if cb then cb() end end)
-        return b
+    saveBtnLayout.FillDirection = Enum.FillDirection.Horizontal; saveBtnLayout.Padding = UDim.new(0, 4)
+    local function makeHalfBtn(par, text, cb, ord)
+        local b = Instance.new("TextButton", par)
+        b.Size = UDim2.new(0.5, -2, 1, 0); b.BackgroundColor3 = Theme.Button
+        b.BackgroundTransparency = 0.2; b.BorderSizePixel = 0; b.Text = text
+        b.TextColor3 = Theme.Text; b.TextSize = 10; b.Font = Enum.Font.GothamMedium
+        b.AutoButtonColor = false; b.LayoutOrder = ord; corner(b, 4)
+        b.MouseButton1Click:Connect(function() if cb then cb() end end); return b
     end
-
     makeHalfBtn(saveBtnRow, "Save", function()
         if not writefile then return end
         local name = nameBox.Text ~= "" and nameBox.Text or "default"
-        local data = {Smoothness = S.AimbotSmoothing, SilentHitChance = S.SilentHitChance, Version = "1.0"}
-        pcall(function()
-            writefile("SOUHUB_UR_" .. name .. ".json", HttpService:JSONEncode(data))
-        end)
+        pcall(function() writefile("SOUHUB_UR_" .. name .. ".json", HttpService:JSONEncode({Smoothness = S.AimbotSmoothing, Version = "1.0"})) end)
     end, 1)
     makeHalfBtn(saveBtnRow, "Load", function()
         if not readfile or not isfile then return end
         local name = nameBox.Text ~= "" and nameBox.Text or "default"
-        local file = "SOUHUB_UR_" .. name .. ".json"
-        pcall(function()
-            if isfile(file) then
-                local data = HttpService:JSONDecode(readfile(file))
-                if data.Smoothing then S.AimbotSmoothing = data.Smoothing end
-            end
-        end)
+        pcall(function() if isfile("SOUHUB_UR_" .. name .. ".json") then local d = HttpService:JSONDecode(readfile("SOUHUB_UR_" .. name .. ".json")); if d.Smoothing then S.AimbotSmoothing = d.Smoothing end end end)
     end, 2)
-
-    makeButton(configSec, "Export Config",          nil, 4)
-    makeButton(configSec, "Import from Clipboard",  nil, 5)
-    makeButton(configSec, "Import Config",          nil, 6)
-    makeButton(configSec, "Delete",                 nil, 7)
-    makeButton(configSec, "Refresh",                nil, 8)
-    makeToggle(configSec, "Auto Load Config",       false, nil, 9, false)
-    makeToggle(configSec, "Silent Load",            false, nil, 10, false)
-    makeToggle(configSec, "Auto Execute",           false, nil, 11, false)
-
+    makeButton(configSec, "Export Config",         nil, 4)
+    makeButton(configSec, "Import from Clipboard", nil, 5)
+    makeButton(configSec, "Delete",                nil, 7)
+    makeButton(configSec, "Refresh",               nil, 8)
+    makeToggle(configSec, "Auto Load Config",      false, nil, 9, false)
+    makeToggle(configSec, "Auto Execute",          false, nil, 11, false)
     local menuSec = makeSection(rightCol, "Menu", 1)
     makeToggle(menuSec,   "Keybind List",     false, nil, 2, false)
     makeToggle(menuSec,   "Watermark",        S.Watermark, function(v) S.Watermark = v end, 3, false)
     makeDropdown(menuSec, "Watermark Options",{"Fps, Ping, Time","Fps, Ping","Fps"}, "Fps, Ping, Time", nil, 4)
     makeButton(menuSec,   "Reset Positions",  nil, 5)
-    makeDropdown(menuSec, "Easing Style",     {"Exponential","Linear","Quad","Quint"}, "Exponential", nil, 6)
     makeSlider(menuSec,   "Tweening Speed",   0, 1, 0.4, "s", nil, 7)
-    makeDropdown(menuSec, "Notification Origin", {"Top Left","Top Right","Bottom Left","Bottom Right"}, "Top Left", nil, 8)
     makeSlider(menuSec,   "Glow Radius",      0, 30, 10, "px", nil, 9)
     makeSlider(menuSec,   "Glow Transparency",0, 1,  0.27,"",  nil, 10)
     makeButton(menuSec,   "Test Notification",nil, 11)
 end
 
--- Settings > Styling
 do
     local p = settingsSubs["SET_STYLING"]
     local leftCol, rightCol = makeTwoCol(p, 1)
-
     local colorSec = makeSection(leftCol, "Colors", 1)
-    local colorItems = {
-        "Accent","Background","Sidebar","Selected","Section Background",
-        "Section Top","Other Backgrounds","Low Contrast","High Contrast",
-        "Inline","Outline","Text Color","Unselected","Inactive",
-    }
-    local defaults = {
-        Theme.Accent, Theme.Bg, Theme.Sidebar, Theme.Accent, Theme.Section,
-        Theme.SectionTop, Theme.Panel, Theme.Inactive, Theme.Text,
-        Theme.Button, Theme.Outline, Theme.Text, Theme.SubText, Theme.Inactive,
-    }
+    local colorItems = {"Accent","Background","Sidebar","Selected","Section Background","Section Top","Other Backgrounds","Low Contrast","High Contrast","Inline","Outline","Text Color","Unselected","Inactive"}
+    local defaults = {Theme.Accent,Theme.Bg,Theme.Sidebar,Theme.Accent,Theme.Section,Theme.SectionTop,Theme.Panel,Theme.Inactive,Theme.Text,Theme.Button,Theme.Outline,Theme.Text,Theme.SubText,Theme.Inactive}
     for i, name in ipairs(colorItems) do
         local row = Instance.new("Frame", colorSec)
-        row.Size               = UDim2.new(1, 0, 0, 22)
-        row.BackgroundTransparency = 1
-        row.LayoutOrder        = i
+        row.Size = UDim2.new(1, 0, 0, 22); row.BackgroundTransparency = 1; row.LayoutOrder = i
         local lbl = newLabel(row, name, 10, Theme.SubText)
-        lbl.Size     = UDim2.new(1, -26, 1, 0)
-        lbl.Position = UDim2.new(0, 0, 0, 0)
-        local swatch = makeColorSwatch(row, defaults[i] or Theme.Accent, nil)
+        lbl.Size = UDim2.new(1, -26, 1, 0); lbl.Position = UDim2.new(0, 0, 0, 0)
+        makeColorSwatch(row, defaults[i] or Theme.Accent, nil)
         local sw = row:FindFirstChildOfClass("TextButton")
-        if sw then
-            sw.Position  = UDim2.new(1, -20, 0.5, -9)
-            sw.AnchorPoint = Vector2.new(0, 0)
-        end
+        if sw then sw.Position = UDim2.new(1, -20, 0.5, -9); sw.AnchorPoint = Vector2.new(0, 0) end
     end
-
     local themeSec = makeSection(rightCol, "Themes", 1)
     local themeBox = Instance.new("TextBox", themeSec)
-    themeBox.Size               = UDim2.new(1, 0, 0, 40)
-    themeBox.BackgroundColor3   = Theme.Button
-    themeBox.BackgroundTransparency = 0.3
-    themeBox.BorderSizePixel    = 0
-    themeBox.Text               = ""
-    themeBox.PlaceholderText    = "Theme list..."
-    themeBox.PlaceholderColor3  = Theme.SubText
-    themeBox.TextColor3         = Theme.Text
-    themeBox.TextSize           = 10
-    themeBox.Font               = Enum.Font.Gotham
-    themeBox.ClearTextOnFocus   = false
-    themeBox.LayoutOrder        = 1
-    corner(themeBox, 4)
-
+    themeBox.Size = UDim2.new(1, 0, 0, 40); themeBox.BackgroundColor3 = Theme.Button
+    themeBox.BackgroundTransparency = 0.3; themeBox.BorderSizePixel = 0; themeBox.Text = ""
+    themeBox.PlaceholderText = "Theme list..."; themeBox.PlaceholderColor3 = Theme.SubText
+    themeBox.TextColor3 = Theme.Text; themeBox.TextSize = 10; themeBox.Font = Enum.Font.Gotham
+    themeBox.ClearTextOnFocus = false; themeBox.LayoutOrder = 1; corner(themeBox, 4)
     local themeNameBox = Instance.new("TextBox", themeSec)
-    themeNameBox.Size               = UDim2.new(1, 0, 0, 24)
-    themeNameBox.BackgroundColor3   = Theme.Button
-    themeNameBox.BackgroundTransparency = 0.3
-    themeNameBox.BorderSizePixel    = 0
-    themeNameBox.Text               = ""
-    themeNameBox.PlaceholderText    = "Name..."
-    themeNameBox.PlaceholderColor3  = Theme.SubText
-    themeNameBox.TextColor3         = Theme.Text
-    themeNameBox.TextSize           = 10
-    themeNameBox.Font               = Enum.Font.Gotham
-    themeNameBox.ClearTextOnFocus   = false
-    themeNameBox.LayoutOrder        = 2
-    corner(themeNameBox, 4)
-
+    themeNameBox.Size = UDim2.new(1, 0, 0, 24); themeNameBox.BackgroundColor3 = Theme.Button
+    themeNameBox.BackgroundTransparency = 0.3; themeNameBox.BorderSizePixel = 0; themeNameBox.Text = ""
+    themeNameBox.PlaceholderText = "Name..."; themeNameBox.PlaceholderColor3 = Theme.SubText
+    themeNameBox.TextColor3 = Theme.Text; themeNameBox.TextSize = 10; themeNameBox.Font = Enum.Font.Gotham
+    themeNameBox.ClearTextOnFocus = false; themeNameBox.LayoutOrder = 2; corner(themeNameBox, 4)
     local themeRow = Instance.new("Frame", themeSec)
-    themeRow.Size               = UDim2.new(1, 0, 0, 28)
-    themeRow.BackgroundTransparency = 1
-    themeRow.LayoutOrder        = 3
+    themeRow.Size = UDim2.new(1, 0, 0, 28); themeRow.BackgroundTransparency = 1; themeRow.LayoutOrder = 3
     local trl = Instance.new("UIListLayout", themeRow)
-    trl.FillDirection = Enum.FillDirection.Horizontal
-    trl.Padding       = UDim.new(0, 4)
-    local function themeHalfBtn(text, cb, order)
+    trl.FillDirection = Enum.FillDirection.Horizontal; trl.Padding = UDim.new(0, 4)
+    local function themeHalfBtn(text, cb, ord)
         local b = Instance.new("TextButton", themeRow)
-        b.Size               = UDim2.new(0.5, -2, 1, 0)
-        b.BackgroundColor3   = Theme.Button
-        b.BackgroundTransparency = 0.2
-        b.BorderSizePixel    = 0
-        b.Text               = text
-        b.TextColor3         = Theme.Text
-        b.TextSize           = 10
-        b.Font               = Enum.Font.GothamMedium
-        b.AutoButtonColor    = false
-        b.LayoutOrder        = order
-        corner(b, 4)
+        b.Size = UDim2.new(0.5, -2, 1, 0); b.BackgroundColor3 = Theme.Button
+        b.BackgroundTransparency = 0.2; b.BorderSizePixel = 0; b.Text = text
+        b.TextColor3 = Theme.Text; b.TextSize = 10; b.Font = Enum.Font.GothamMedium
+        b.AutoButtonColor = false; b.LayoutOrder = ord; corner(b, 4)
         b.MouseButton1Click:Connect(function() if cb then cb() end end)
     end
-    themeHalfBtn("Save", nil, 1)
-    themeHalfBtn("Load", nil, 2)
-    makeButton(themeSec, "Delete",           nil, 4)
-    makeButton(themeSec, "Refresh",          nil, 5)
-    makeToggle(themeSec, "Auto Load Theme",  false, nil, 6, false)
-end
-
--- ─── CHAT PAGE (stub) ─────────────────────────────────────────────────────────
-do
-    local chatSec = makeSection(tabPages["CHAT"], "Chat", 1)
-    local infoLbl = newLabel(chatSec, "Chat features coming soon", 11, Theme.SubText)
-    infoLbl.Size = UDim2.new(1, 0, 0, 30)
-    infoLbl.TextXAlignment = Enum.TextXAlignment.Center
+    themeHalfBtn("Save", nil, 1); themeHalfBtn("Load", nil, 2)
+    makeButton(themeSec, "Delete",  nil, 4)
+    makeButton(themeSec, "Refresh", nil, 5)
+    makeToggle(themeSec, "Auto Load Theme", false, nil, 6, false)
 end
 
 -- ─── FOV CIRCLE ──────────────────────────────────────────────────────────────
 local fovFrame = Instance.new("Frame", ScreenGui)
-fovFrame.Name               = "FOVCircle"
-fovFrame.BackgroundTransparency = 1
-fovFrame.ZIndex             = 999
-
+fovFrame.Name = "FOVCircle"; fovFrame.BackgroundTransparency = 1; fovFrame.ZIndex = 999
 local fovCircle = Instance.new("Frame", fovFrame)
-fovCircle.Size              = UDim2.new(1, 0, 1, 0)
-fovCircle.BackgroundTransparency = 1
-fovCircle.ZIndex            = 1000
+fovCircle.Size = UDim2.new(1, 0, 1, 0); fovCircle.BackgroundTransparency = 1; fovCircle.ZIndex = 1000
 corner(fovCircle, 100)
 local fovStroke = Instance.new("UIStroke", fovCircle)
-fovStroke.Color       = Color3.fromRGB(255, 255, 255)
-fovStroke.Thickness   = 1
-fovStroke.Transparency = 0.3
+fovStroke.Color = Color3.fromRGB(255,255,255); fovStroke.Thickness = 1; fovStroke.Transparency = 0.3
 
 -- ─── WATERMARK ───────────────────────────────────────────────────────────────
 local wmFrame = Instance.new("Frame", ScreenGui)
-wmFrame.Size             = UDim2.new(0, 180, 0, 22)
-wmFrame.Position         = UDim2.new(0, 12, 0, 12)
-wmFrame.BackgroundColor3 = Theme.Panel
-wmFrame.BackgroundTransparency = 0.15
-wmFrame.BorderSizePixel  = 0
-wmFrame.Visible          = false
-corner(wmFrame, 4)
-stroke(wmFrame, Theme.Accent, 1, 0.5)
-
+wmFrame.Size = UDim2.new(0, 180, 0, 22); wmFrame.Position = UDim2.new(0, 12, 0, 12)
+wmFrame.BackgroundColor3 = Theme.Panel; wmFrame.BackgroundTransparency = 0.15
+wmFrame.BorderSizePixel = 0; wmFrame.Visible = false
+corner(wmFrame, 4); stroke(wmFrame, Theme.Accent, 1, 0.5)
 local wmText = newLabel(wmFrame, "Sou Hub | Urban Reload | 60 FPS", 9, Theme.SubText, Enum.Font.Code)
-wmText.Size     = UDim2.new(1, -8, 1, 0)
-wmText.Position = UDim2.new(0, 6, 0, 0)
+wmText.Size = UDim2.new(1, -8, 1, 0); wmText.Position = UDim2.new(0, 6, 0, 0)
 
 -- ─── ESP ─────────────────────────────────────────────────────────────────────
 local hasDrawing = false
 pcall(function() local t = Drawing.new("Line"); t:Remove(); hasDrawing = true end)
 
 local espObjects = {}
-
 local function removeESP(name)
-    local obj = espObjects[name]
-    if not obj then return end
+    local obj = espObjects[name]; if not obj then return end
     for _, v in pairs(obj) do pcall(function() v:Remove() end) end
     espObjects[name] = nil
 end
-
 local function hideESP(name)
-    local obj = espObjects[name]
-    if not obj then return end
+    local obj = espObjects[name]; if not obj then return end
     for _, v in pairs(obj) do pcall(function() v.Visible = false end) end
 end
-
 local function createESP(name)
     if not hasDrawing then return end
-    local function line()
-        local l = Drawing.new("Line")
-        l.Thickness = 1; l.Color = Color3.fromRGB(255,255,255); l.Visible = false
-        return l
-    end
-    local function txt(sz)
-        local t = Drawing.new("Text")
-        t.Size = sz or 12; t.Center = true; t.Outline = true
-        t.OutlineColor = Color3.fromRGB(0,0,0); t.Font = 2; t.Visible = false
-        return t
-    end
+    local function line() local l = Drawing.new("Line"); l.Thickness = 1; l.Color = Color3.fromRGB(255,255,255); l.Visible = false; return l end
+    local function txt(sz) local t = Drawing.new("Text"); t.Size = sz or 12; t.Center = true; t.Outline = true; t.OutlineColor = Color3.fromRGB(0,0,0); t.Font = 2; t.Visible = false; return t end
     espObjects[name] = {
         boxT = line(), boxB = line(), boxL = line(), boxR = line(),
-        hpBg = Drawing.new("Line"),
-        hpFg = Drawing.new("Line"),
+        hpBg = Drawing.new("Line"), hpFg = Drawing.new("Line"),
         name = txt(12), dist = txt(11),
     }
     local hp = espObjects[name]
@@ -1455,78 +1166,46 @@ end
 
 local function updateESP()
     if not hasDrawing then return end
-    for name in pairs(espObjects) do
-        if not Players:FindFirstChild(name) then removeESP(name) end
-    end
+    for name in pairs(espObjects) do if not Players:FindFirstChild(name) then removeESP(name) end end
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr == LocalPlayer then continue end
-        local show = S.ESPEnabled
-        if not show or not plr.Character then hideESP(plr.Name); continue end
-
+        if not S.ESPEnabled or not plr.Character then hideESP(plr.Name); continue end
         local char = plr.Character
         local hum  = char:FindFirstChildOfClass("Humanoid")
         local root = char:FindFirstChild("HumanoidRootPart")
         local head = char:FindFirstChild("Head")
-
         if not hum or hum.Health <= 0 or not root then hideESP(plr.Name); continue end
         if not espObjects[plr.Name] then createESP(plr.Name) end
-
         local obj = espObjects[plr.Name]
         local headPos = head and head.Position or (root.Position + Vector3.new(0,2,0))
-
         local sp, onScreen = Camera:WorldToViewportPoint(headPos)
         local topSP = Camera:WorldToViewportPoint(headPos + Vector3.new(0,1,0))
         local botSP = Camera:WorldToViewportPoint(root.Position - Vector3.new(0,3,0))
         local lSP   = Camera:WorldToViewportPoint(root.Position + Vector3.new(-1,1,0))
         local rSP   = Camera:WorldToViewportPoint(root.Position + Vector3.new( 1,1,0))
-
         local dist = math.floor((Camera.CFrame.Position - root.Position).Magnitude)
         if not onScreen or dist > 600 then hideESP(plr.Name); continue end
-
         local cx   = (lSP.X + rSP.X) / 2
         local half = math.abs(rSP.X - lSP.X) / 2
-        local topY = topSP.Y
-        local botY = botSP.Y
-
+        local topY = topSP.Y; local botY = botSP.Y
         if S.BoundingBox then
-            local white = Color3.fromRGB(255,255,255)
-            obj.boxT.From = Vector2.new(cx-half, topY); obj.boxT.To = Vector2.new(cx+half, topY); obj.boxT.Color = white; obj.boxT.Visible = true
-            obj.boxB.From = Vector2.new(cx-half, botY); obj.boxB.To = Vector2.new(cx+half, botY); obj.boxB.Color = white; obj.boxB.Visible = true
-            obj.boxL.From = Vector2.new(cx-half, topY); obj.boxL.To = Vector2.new(cx-half, botY); obj.boxL.Color = white; obj.boxL.Visible = true
-            obj.boxR.From = Vector2.new(cx+half, topY); obj.boxR.To = Vector2.new(cx+half, botY); obj.boxR.Color = white; obj.boxR.Visible = true
-        else
-            obj.boxT.Visible = false; obj.boxB.Visible = false
-            obj.boxL.Visible = false; obj.boxR.Visible = false
-        end
-
-        local hp  = math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1)
+            local w = Color3.fromRGB(255,255,255)
+            obj.boxT.From = Vector2.new(cx-half, topY); obj.boxT.To = Vector2.new(cx+half, topY); obj.boxT.Color = w; obj.boxT.Visible = true
+            obj.boxB.From = Vector2.new(cx-half, botY); obj.boxB.To = Vector2.new(cx+half, botY); obj.boxB.Color = w; obj.boxB.Visible = true
+            obj.boxL.From = Vector2.new(cx-half, topY); obj.boxL.To = Vector2.new(cx-half, botY); obj.boxL.Color = w; obj.boxL.Visible = true
+            obj.boxR.From = Vector2.new(cx+half, topY); obj.boxR.To = Vector2.new(cx+half, botY); obj.boxR.Color = w; obj.boxR.Visible = true
+        else obj.boxT.Visible = false; obj.boxB.Visible = false; obj.boxL.Visible = false; obj.boxR.Visible = false end
+        local hpPct = math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1)
         local boxH = botY - topY
         if S.HealthBar and boxH > 4 then
-            obj.hpBg.From = Vector2.new(cx-half-5, topY)
-            obj.hpBg.To   = Vector2.new(cx-half-5, botY)
-            obj.hpBg.Visible = true
-            obj.hpFg.From = Vector2.new(cx-half-5, topY + boxH*(1-hp))
-            obj.hpFg.To   = Vector2.new(cx-half-5, botY)
-            obj.hpFg.Color = Color3.fromRGB(255*( 1-hp), 255*hp, 0)
-            obj.hpFg.Visible = true
-        else
-            obj.hpBg.Visible = false; obj.hpFg.Visible = false
-        end
-
+            obj.hpBg.From = Vector2.new(cx-half-5, topY); obj.hpBg.To = Vector2.new(cx-half-5, botY); obj.hpBg.Visible = true
+            obj.hpFg.From = Vector2.new(cx-half-5, topY + boxH*(1-hpPct)); obj.hpFg.To = Vector2.new(cx-half-5, botY)
+            obj.hpFg.Color = Color3.fromRGB(255*(1-hpPct), 255*hpPct, 0); obj.hpFg.Visible = true
+        else obj.hpBg.Visible = false; obj.hpFg.Visible = false end
         local yOff = topY - 16
-        if S.ESPName then
-            obj.name.Text     = plr.DisplayName
-            obj.name.Position = Vector2.new(cx, yOff)
-            obj.name.Color    = Color3.fromRGB(255,255,255)
-            obj.name.Visible  = true
-            yOff = yOff - 13
+        if S.ESPName then obj.name.Text = plr.DisplayName; obj.name.Position = Vector2.new(cx, yOff); obj.name.Color = Color3.fromRGB(255,255,255); obj.name.Visible = true; yOff = yOff - 13
         else obj.name.Visible = false end
-
-        if S.ESPDistance then
-            obj.dist.Text     = dist .. "m"
-            obj.dist.Position = Vector2.new(cx, yOff)
-            obj.dist.Color    = Color3.fromRGB(180,180,180)
-            obj.dist.Visible  = true
+        if S.ESPDistance then obj.dist.Text = dist .. "m"; obj.dist.Position = Vector2.new(cx, yOff); obj.dist.Color = Color3.fromRGB(180,180,180); obj.dist.Visible = true
         else obj.dist.Visible = false end
     end
 end
@@ -1541,12 +1220,9 @@ end
 
 local function wallCheck(part)
     if not part then return false end
-    local origin = Camera.CFrame.Position
-    local dir    = part.Position - origin
-    local rp     = RaycastParams.new()
-    rp.FilterType = Enum.RaycastFilterType.Exclude
-    rp.FilterDescendantsInstances = {LocalPlayer.Character, Camera}
-    rp.IgnoreWater = true
+    local origin = Camera.CFrame.Position; local dir = part.Position - origin
+    local rp = RaycastParams.new(); rp.FilterType = Enum.RaycastFilterType.Exclude
+    rp.FilterDescendantsInstances = {LocalPlayer.Character, Camera}; rp.IgnoreWater = true
     local hit = workspace:Raycast(origin, dir, rp)
     if not hit then return true end
     local tc = part:FindFirstAncestorOfClass("Model")
@@ -1554,15 +1230,11 @@ local function wallCheck(part)
 end
 
 local function getClosest()
-    local cx   = Camera.ViewportSize.X / 2
-    local cy   = Camera.ViewportSize.Y / 2
-    local fov  = S.FOVRadius
-    local best, bestD = nil, math.huge
-
+    local cx = Camera.ViewportSize.X / 2; local cy = Camera.ViewportSize.Y / 2
+    local fov = S.FOVRadius; local best, bestD = nil, math.huge
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr == LocalPlayer then continue end
-        local char = plr.Character
-        if not char then continue end
+        local char = plr.Character; if not char then continue end
         local part = char:FindFirstChild(S.AimbotPart) or char:FindFirstChild("HumanoidRootPart")
         if not part then continue end
         local hum = char:FindFirstChildOfClass("Humanoid")
@@ -1572,28 +1244,26 @@ local function getClosest()
         if not onScreen then continue end
         local d = math.sqrt((sp.X-cx)^2 + (sp.Y-cy)^2)
         if (not S.AimbotFOV or d < fov) and d < bestD then
-            if not S.AimbotWallCheck or wallCheck(part) then
-                bestD = d; best = plr
-            end
+            if not S.AimbotWallCheck or wallCheck(part) then bestD = d; best = plr end
         end
     end
     return best
 end
 
 -- ─── SILENT AIM ──────────────────────────────────────────────────────────────
-local _origIdx
 pcall(function()
-    _origIdx = hookmetamethod(game, "__index", function(t, k)
+    if not hookmetamethod then return end
+    local _origIdx
+    _origIdx = hookmetamethod(game, "__index", newcclosure(function(t, k)
         if S.SilentAim and S.CurrentTarget and S.CurrentTarget.Character then
-            local part = S.CurrentTarget.Character:FindFirstChild(S.SilentPart)
-                      or S.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
+            local part = S.CurrentTarget.Character:FindFirstChild(S.SilentPart) or S.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
             if part and t:IsA("Mouse") then
                 if k == "Hit"    then return part.CFrame end
                 if k == "Target" then return part end
             end
         end
         return _origIdx(t, k)
-    end)
+    end))
 end)
 
 -- ─── INPUT ───────────────────────────────────────────────────────────────────
@@ -1606,50 +1276,38 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         else
             local entry = kbBtnRegistry[pendingKbBtn]
             if entry then keybindMap[input.KeyCode] = entry.toggle end
-            pendingKbBtn.Text      = "[" .. input.KeyCode.Name .. "]"
-            pendingKbBtn.TextColor3 = Theme.Text
-            pendingKbBtn = nil
+            pendingKbBtn.Text = "[" .. input.KeyCode.Name .. "]"; pendingKbBtn.TextColor3 = Theme.Text; pendingKbBtn = nil
         end
         return
     end
-
     if input.UserInputType == Enum.UserInputType.Keyboard then
-        local cb = keybindMap[input.KeyCode]
-        if cb then cb() end
+        local cb = keybindMap[input.KeyCode]; if cb then cb() end
     end
-
-    if input.KeyCode == S.MenuBind then
-        MainFrame.Visible = not MainFrame.Visible
-    end
-
+    if input.KeyCode == S.MenuBind then MainFrame.Visible = not MainFrame.Visible end
     if input.KeyCode == Enum.KeyCode.Space and S.InfiniteJump then
-        local char = LocalPlayer.Character
-        if char then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-        end
+        pcall(function() LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping) end)
     end
-
     if input.KeyCode == Enum.KeyCode.End then
-        S.Aimbot = false; S.SilentAim = false; S.TriggerBot = false
-        S.KillAura = false; locked = false; S.CurrentTarget = nil
-        MainFrame.Visible = false
+        S.Aimbot = false; S.SilentAim = false; S.TriggerBot = false; locked = false; S.CurrentTarget = nil; MainFrame.Visible = false
     end
 end)
 
--- ─── FLY ─────────────────────────────────────────────────────────────────────
-local flyAtt, flyLV
+-- ─── FLY (BodyVelocity - Project Real uyumlu) ────────────────────────────────
+local flyBV, flyBG
 
 local function cleanFly()
-    if flyAtt then pcall(function() flyAtt:Destroy() end); flyAtt = nil end
-    if flyLV  then pcall(function() flyLV:Destroy()  end); flyLV  = nil end
+    if flyBV then pcall(function() flyBV:Destroy() end); flyBV = nil end
+    if flyBG then pcall(function() flyBG:Destroy() end); flyBG = nil end
+    pcall(function()
+        local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.PlatformStand = false end
+    end)
 end
 
 -- ─── NOCLIP ──────────────────────────────────────────────────────────────────
 RunService.Stepped:Connect(function()
     if not S.Noclip then return end
-    local char = LocalPlayer.Character
-    if not char then return end
+    local char = LocalPlayer.Character; if not char then return end
     for _, p in ipairs(char:GetDescendants()) do
         if p:IsA("BasePart") then p.CanCollide = false end
     end
@@ -1657,34 +1315,26 @@ end)
 
 -- ─── HEARTBEAT ───────────────────────────────────────────────────────────────
 RunService.Heartbeat:Connect(function()
-    local char = LocalPlayer.Character
-    if not char then return end
-    local hum  = char:FindFirstChildOfClass("Humanoid")
-    if not hum then return end
-
+    local char = LocalPlayer.Character; if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid"); if not hum then return end
     if S.WalkSpeed then hum.WalkSpeed = S.WalkSpeedVal end
-    if S.JumpPower  then hum.UseJumpPower = true; hum.JumpPower = S.JumpPowerVal end
+    if S.JumpPower then hum.UseJumpPower = true; hum.JumpPower = S.JumpPowerVal end
     if S.InfiniteJump and hum:GetState() == Enum.HumanoidStateType.Freefall then
-        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-            hum:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
     end
 end)
 
 -- ─── RENDER STEPPED ──────────────────────────────────────────────────────────
-local fpsCount = 0
-local fpsLast  = tick()
-local pingVal  = 0
+local fpsCount = 0; local fpsLast = tick(); local pingVal = 0
 
 RunService.RenderStepped:Connect(function()
-    updateESP()
+    pcall(updateESP)
 
     -- FOV
     fovFrame.Visible = S.FOVVisible and S.AimbotFOV
     if fovFrame.Visible then
         local r = S.FOVRadius
-        fovFrame.Size     = UDim2.new(0, r*2, 0, r*2)
-        fovFrame.Position = UDim2.new(0.5, -r, 0.5, -r)
+        fovFrame.Size = UDim2.new(0, r*2, 0, r*2); fovFrame.Position = UDim2.new(0.5, -r, 0.5, -r)
     end
 
     -- FPS / watermark
@@ -1693,68 +1343,65 @@ RunService.RenderStepped:Connect(function()
         local fps = fpsCount
         pcall(function() pingVal = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
         wmFrame.Visible = S.Watermark
-        if S.Watermark then
-            wmText.Text = "Sou Hub  |  " .. fps .. " FPS  |  " .. pingVal .. " MS"
-        end
+        if S.Watermark then wmText.Text = "Sou Hub  |  " .. fps .. " FPS  |  " .. pingVal .. " MS" end
         fpsCount = 0; fpsLast = tick()
     end
 
-    -- fly
+    -- FLY (BodyVelocity based)
     local char = LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
     if S.Fly and root then
-        if not flyLV or flyLV.Parent ~= root then
+        if not flyBV or flyBV.Parent ~= root then
             cleanFly()
-            flyAtt = Instance.new("Attachment", root)
-            flyLV  = Instance.new("LinearVelocity", root)
-            flyLV.Attachment0            = flyAtt
-            flyLV.MaxForce               = math.huge
-            flyLV.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
-            flyLV.VectorVelocity         = Vector3.new()
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.PlatformStand = true end
+            flyBV = Instance.new("BodyVelocity")
+            flyBV.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+            flyBV.Velocity = Vector3.new(0, 0, 0)
+            flyBV.Parent = root
+            flyBG = Instance.new("BodyGyro")
+            flyBG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            flyBG.D = 200; flyBG.P = 9000
+            flyBG.Parent = root
         end
         local dir = Vector3.new()
-        local UIS = UserInputService
-        if UIS:IsKeyDown(Enum.KeyCode.W)     then dir = dir + Camera.CFrame.LookVector  end
-        if UIS:IsKeyDown(Enum.KeyCode.S)     then dir = dir - Camera.CFrame.LookVector  end
-        if UIS:IsKeyDown(Enum.KeyCode.A)     then dir = dir - Camera.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.D)     then dir = dir + Camera.CFrame.RightVector end
-        if UIS:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0)        end
+        if UserInputService:IsKeyDown(Enum.KeyCode.W)     then dir = dir + Camera.CFrame.LookVector  end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S)     then dir = dir - Camera.CFrame.LookVector  end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A)     then dir = dir - Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D)     then dir = dir + Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Space) then dir = dir + Vector3.new(0,1,0)        end
         if dir.Magnitude > 0 then dir = dir.Unit end
-        flyLV.VectorVelocity = dir * S.WalkSpeedVal * 2
+        flyBV.Velocity = dir * S.FlySpeed
+        flyBG.CFrame = Camera.CFrame
     else
-        cleanFly()
+        if flyBV then cleanFly() end
     end
 
-    -- aimbot
+    -- AIMBOT
     if not S.Aimbot then locked = false; S.CurrentTarget = nil; return end
-
     S.CurrentTarget = getClosest()
     locked = S.CurrentTarget ~= nil
-
     if locked and S.CurrentTarget and S.CurrentTarget.Character then
-        local part = S.CurrentTarget.Character:FindFirstChild(S.AimbotPart)
-                  or S.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
+        local part = S.CurrentTarget.Character:FindFirstChild(S.AimbotPart) or S.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
         if part then
             local h = S.CurrentTarget.Character:FindFirstChildOfClass("Humanoid")
             if h and h.Health > 0 then
                 local vel = Vector3.new()
                 pcall(function() vel = part.AssemblyLinearVelocity end)
                 local predicted = part.Position + vel * 0.05
-                local targetCF  = CFrame.new(Camera.CFrame.Position, predicted)
-                Camera.CFrame   = Camera.CFrame:Lerp(targetCF, S.AimbotSmoothing)
+                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
             end
         end
     end
 
-    -- trigger
+    -- TRIGGER
     if S.TriggerBot and S.CurrentTarget and S.CurrentTarget.Character then
         local part = S.CurrentTarget.Character:FindFirstChild(S.TriggerPart)
         if part then
-            local sp, on = Camera:WorldToViewportPoint(part.Position)
-            if on then
-                local cx = Camera.ViewportSize.X/2
-                local cy = Camera.ViewportSize.Y/2
-                if math.sqrt((sp.X-cx)^2+(sp.Y-cy)^2) < 20 then
+            local sp2, on2 = Camera:WorldToViewportPoint(part.Position)
+            if on2 then
+                local cx2 = Camera.ViewportSize.X/2; local cy2 = Camera.ViewportSize.Y/2
+                if math.sqrt((sp2.X-cx2)^2+(sp2.Y-cy2)^2) < 20 then
                     local c = char and char:FindFirstChildOfClass("Tool")
                     if c then task.delay(S.TriggerReaction, function() pcall(function() c:Activate() end) end) end
                 end
@@ -1772,7 +1419,7 @@ pcall(function()
 end)
 
 -- ─── BOOT ────────────────────────────────────────────────────────────────────
-print("[SOU HUB] Urban Reload yuklendi!")
+print("[SOU HUB] Urban Reload yuklendi! (Project Real Fixed)")
 
 task.spawn(function()
     task.wait(1.5)
