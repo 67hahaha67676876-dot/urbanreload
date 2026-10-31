@@ -26,18 +26,14 @@ local function getGuiParent()
         sg.Parent = game:GetService("CoreGui")
         return sg
     end
-    -- try CoreGui directly (most executors allow this)
-    local coreGui = game:GetService("CoreGui")
     local ok = pcall(function()
         local t = Instance.new("ScreenGui")
-        t.Parent = coreGui
+        t.Parent = game:GetService("CoreGui")
         t:Destroy()
     end)
-    if ok then return coreGui end
-    -- fallback: PlayerGui
+    if ok then return game:GetService("CoreGui") end
     return LocalPlayer:WaitForChild("PlayerGui")
 end
-
 -- ─── THEME ───────────────────────────────────────────────────────────────────
 local Theme = {
     Accent     = Color3.fromRGB(59, 130, 246),   -- blue
