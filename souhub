@@ -138,6 +138,11 @@ local S = {
     HitOverlay       = true,
     DisableHitmarker = true,
     DisableDmgNums   = true,
+    HitChams         = true,
+    HitChamsDuration = 2,
+    HitChamsMaterial = "Neon",
+    HitChamsTrans    = 0.5,
+    HitChamsColor    = Color3.fromRGB(255, 0, 0),
     MenuBind         = Enum.KeyCode.RightBracket,
     Watermark        = false,
     FOVRadius        = 150,
@@ -1008,10 +1013,14 @@ do
     makeToggle(disableSec, "Reload Sound",   false, nil, 9, false)
     makeToggle(disableSec, "Muzzle Flash",   false, nil, 10, false)
     local hitChamsSec = makeSection(rightCol, "Hit Chams", 2)
-    makeToggle(hitChamsSec, "Enabled", true, nil, 1, false)
-    makeSlider(hitChamsSec, "Duration", 0, 5, 2, "s", nil, 2)
-    makeDropdown(hitChamsSec, "Material", {"Neon","Glass","ForceField","Metal"}, "Neon", nil, 3)
-    makeSlider(hitChamsSec,  "Transparency", 0, 1, 0.5, "", nil, 4)
+    makeToggle(hitChamsSec, "Enabled", S.HitChams, function(v) S.HitChams = v end, 1, false)
+    makeSlider(hitChamsSec, "Duration", 0, 5, 2, "s", function(v) S.HitChamsDuration = v end, 2)
+    makeDropdown(hitChamsSec, "Material", {"Neon","Glass","ForceField","Metal"}, "Neon", function(v) S.HitChamsMaterial = v end, 3)
+    makeSlider(hitChamsSec, "Transparency", 0, 1, 0.5, "", function(v) S.HitChamsTrans = v end, 4)
+    makeDropdown(hitChamsSec, "Color", {"Red","Purple","Cyan","Green","Yellow","White","Orange"}, "Red", function(v)
+        local colors = {Red=Color3.fromRGB(255,0,0), Purple=Color3.fromRGB(140,0,255), Cyan=Color3.fromRGB(0,255,255), Green=Color3.fromRGB(0,255,0), Yellow=Color3.fromRGB(255,255,0), White=Color3.fromRGB(255,255,255), Orange=Color3.fromRGB(255,140,0)}
+        S.HitChamsColor = colors[v] or Color3.fromRGB(255,0,0)
+    end, 5)
 end
 
 -- â”€â”€â”€ CHAT PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1213,6 +1222,8 @@ local function updateESP()
         local hum  = char:FindFirstChildOfClass("Humanoid")
         local root = char:FindFirstChild("HumanoidRootPart")
         local head = char:FindFirstChild("Head")
+        -- Arabadaki oyuncu icin SeatPart fallback
+        if not root and hum then pcall(function() if hum.SeatPart then root = hum.SeatPart end end) end
         if not hum or hum.Health <= 0 or not root then hideESP(plr.Name); continue end
         if not espObjects[plr.Name] then createESP(plr.Name) end
         local obj = espObjects[plr.Name]
@@ -1309,11 +1320,21 @@ local function getClosest()
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr == LocalPlayer then continue end
         local char = plr.Character; if not char then continue end
-        local part = char:FindFirstChild(S.AimbotPart) or char:FindFirstChild("HumanoidRootPart")
-        if not part then continue end
         local hum = char:FindFirstChildOfClass("Humanoid")
         if not hum or hum.Health <= 0 then continue end
         if isDowned(char) then continue end
+
+        -- Hedef part bul (arabada olsa bile HumanoidRootPart veya Head var)
+        local part = char:FindFirstChild(S.AimbotPart)
+        if not part then part = char:FindFirstChild("HumanoidRootPart") end
+        if not part then part = char:FindFirstChild("Head") end
+        if not part then
+            -- Arabadaki oyuncu: SeatPart uzerinden pozisyon al
+            pcall(function()
+                if hum.SeatPart then part = hum.SeatPart end
+            end)
+        end
+        if not part then continue end
 
         -- Mesafe kontrolu (360 stud sinir)
         if myRoot then
@@ -1450,6 +1471,80 @@ local function updateGunChams()
     end)
 end
 
+-- â”€â”€â”€ HIT CHAMS (vurulan oyuncuya gecici Highlight) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+local hitChamsFolder = Instance.new("Folder")
+hitChamsFolder.Name = "SOUHUB_HitChams"
+pcall(function() hitChamsFolder.Parent = game:GetService("CoreGui") end)
+if not hitChamsFolder.Parent then hitChamsFolder.Parent = ScreenGui end
+
+local function applyHitChams(targetChar)
+    if not S.HitChams or not targetChar then return end
+    pcall(function()
+        -- Eski hit chams varsa sil
+        local oldHL = hitChamsFolder:FindFirstChild(targetChar.Name .. "_hit")
+        if oldHL then oldHL:Destroy() end
+
+        local matMap = {
+            Neon = Enum.Material.Neon,
+            Glass = Enum.Material.Glass,
+            ForceField = Enum.Material.ForceField,
+            Metal = Enum.Material.Metal,
+        }
+
+        local hl = Instance.new("Highlight")
+        hl.Name = targetChar.Name .. "_hit"
+        hl.Adornee = targetChar
+        hl.FillColor = S.HitChamsColor
+        hl.OutlineColor = S.HitChamsColor
+        hl.FillTransparency = S.HitChamsTrans
+        hl.OutlineTransparency = 0
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        hl.Parent = hitChamsFolder
+
+        -- Duration sonra kaldir
+        task.delay(S.HitChamsDuration, function()
+            pcall(function() hl:Destroy() end)
+        end)
+    end)
+end
+
+-- Aimbot hedefine vuruldugunda hit chams uygula
+local lastHitTarget = nil
+local function checkHitChams()
+    if not S.HitChams then return end
+    if S.CurrentTarget and S.CurrentTarget.Character then
+        local char = S.CurrentTarget.Character
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            -- Saglik dusuyorsa vurulmus demek
+            local key = char.Name
+            if not lastHitTarget or lastHitTarget ~= key then
+                lastHitTarget = key
+            end
+        end
+    end
+end
+
+-- Tum oyuncularin sagligini takip et, duserse hit chams uygula
+local healthTracker = {}
+local function trackHealthForHitChams()
+    if not S.HitChams then return end
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr == LocalPlayer then continue end
+        local char = plr.Character
+        if not char then continue end
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        if not hum then continue end
+        local key = plr.Name
+        local curHP = hum.Health
+        if healthTracker[key] and curHP < healthTracker[key] then
+            -- Saglik dustu = vuruldu
+            applyHitChams(char)
+        end
+        healthTracker[key] = curHP
+    end
+end
+
 -- â”€â”€â”€ ANTI RAGDOLL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 RunService.Stepped:Connect(function()
     if not S.AntiRagdoll then return end
@@ -1492,6 +1587,7 @@ RunService.RenderStepped:Connect(function()
     pcall(updateESP)
     pcall(updatePlayerChams)
     pcall(updateGunChams)
+    pcall(trackHealthForHitChams)
 
     -- FOV
     fovFrame.Visible = S.FOVVisible and S.AimbotFOV
@@ -1545,7 +1641,15 @@ RunService.RenderStepped:Connect(function()
     S.CurrentTarget = getClosest()
     locked = S.CurrentTarget ~= nil
     if locked and S.CurrentTarget and S.CurrentTarget.Character then
-        local part = S.CurrentTarget.Character:FindFirstChild(S.AimbotPart) or S.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
+        local char = S.CurrentTarget.Character
+        local part = char:FindFirstChild(S.AimbotPart) or char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head")
+        -- Arabadaki oyuncu icin SeatPart fallback
+        if not part then
+            pcall(function()
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum and hum.SeatPart then part = hum.SeatPart end
+            end)
+        end
         if part then
             local h = S.CurrentTarget.Character:FindFirstChildOfClass("Humanoid")
             if h and h.Health > 0 then
