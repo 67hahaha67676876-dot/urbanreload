@@ -1397,13 +1397,11 @@ pcall(function()
     if not hookmetamethod then return end
     local _origNewIndex
     _origNewIndex = hookmetamethod(game, "__newindex", newcclosure(function(t, k, v)
-        -- Spread genellikle CFrame veya Vector3 olarak atanir
-        -- Silah modulu CFrame set ediyorsa ve NoSpread actiysa duzelt
         if S.NoSpread and isFiring then
             if typeof(v) == "CFrame" and k == "CFrame" then
-                -- Silah barrel CFrame'i set ediliyorsa kamera yonuyle hizala
-                -- (sadece BasePart ise)
-                if t:IsA and pcall(function() return t:IsA("BasePart") end) then
+                -- Silah barrel CFrame kontrolu - hata vermemesi icin pcall
+                local ok, isBP = pcall(function() return t:IsA("BasePart") end)
+                if ok and isBP then
                     return _origNewIndex(t, k, v)
                 end
             end
