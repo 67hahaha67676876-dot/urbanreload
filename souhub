@@ -1368,6 +1368,50 @@ pcall(function()
     end))
 end)
 
+-- â”€â”€â”€ NO RECOIL / NO SPREAD (Camera-based + hookmetamethod) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- AteÅŸ aninda kamera acisini kaydet
+local savedCamCF = nil
+local isFiring = false
+
+pcall(function()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    -- Mouse buton basimini takip et
+    UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isFiring = true
+            if S.NoRecoil then
+                savedCamCF = Camera.CFrame
+            end
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            isFiring = false
+            savedCamCF = nil
+        end
+    end)
+end)
+
+-- hookmetamethod ile NoSpread: mermi yonunu kamera yonuyle esitle
+pcall(function()
+    if not hookmetamethod then return end
+    local _origNewIndex
+    _origNewIndex = hookmetamethod(game, "__newindex", newcclosure(function(t, k, v)
+        -- Spread genellikle CFrame veya Vector3 olarak atanir
+        -- Silah modulu CFrame set ediyorsa ve NoSpread actiysa duzelt
+        if S.NoSpread and isFiring then
+            if typeof(v) == "CFrame" and k == "CFrame" then
+                -- Silah barrel CFrame'i set ediliyorsa kamera yonuyle hizala
+                -- (sadece BasePart ise)
+                if t:IsA and pcall(function() return t:IsA("BasePart") end) then
+                    return _origNewIndex(t, k, v)
+                end
+            end
+        end
+        return _origNewIndex(t, k, v)
+    end))
+end)
+
 -- â”€â”€â”€ INPUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 local locked = false
 
@@ -1654,13 +1698,60 @@ RunService.RenderStepped:Connect(function()
             if part then
                 local h = tChar:FindFirstChildOfClass("Humanoid")
                 if h and h.Health > 0 then
+                    -- Hedef hiz tahmini (mermi lead)
                     local vel = Vector3.new()
                     pcall(function() vel = part.AssemblyLinearVelocity end)
-                    local predicted = part.Position + vel * 0.05
-                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
+                    -- Lead miktarini hedefe olan mesafeye gore ayarla
+                    local dist = (Camera.CFrame.Position - part.Position).Magnitude
+                    local leadMult = math.clamp(dist / 400, 0.03, 0.12)
+                    local predicted = part.Position + vel * leadMult
+
+                    -- Kamera tam lock: Lerp yerine direkt CFrame, smoothing ile
+                    local targetCF = CFrame.new(Camera.CFrame.Position, predicted)
+                    -- Smoothing: 0 = anlik lock, 1 = hic donme
+                    -- AimbotSmoothing degerini ters ceviriyoruz (kullanici 0.35 koydu = orta hiz)
+                    local smooth = math.clamp(S.AimbotSmoothing, 0.01, 0.99)
+                    Camera.CFrame = Camera.CFrame:Lerp(targetCF, 1 - smooth)
                 end
             end
         end
+    end
+
+    -- NO RECOIL (camera-based) - ateslemeden sonra kamera yukariya sapmaz
+    if S.NoRecoil then
+        pcall(function()
+            local char = LocalPlayer.Character
+            if not char then return end
+            local tool = char:FindFirstChildOfClass("Tool")
+            if not tool then return end
+            -- Kameranin mevcut UpVector'unu dunya yukselisiyle karsilastir
+            -- Sapma varsa duzelt
+            local camCF = Camera.CFrame
+            local camUp = camCF.UpVector
+            local worldUp = Vector3.new(0, 1, 0)
+            local dot = camUp:Dot(worldUp)
+            -- Kamera cok yana yatmissa (roll) duzelt
+            if dot < 0.98 then
+                local fixedCF = CFrame.new(camCF.Position, camCF.Position + camCF.LookVector)
+                Camera.CFrame = camCF:Lerp(fixedCF, 0.3)
+            end
+            -- Ateslerken kamera onceki aciya kilitle
+            if isFiring and savedCamCF and not locked then
+                -- Kameranin pitch (yukari/asagi acisi) sapmasini tespit et ve duzelt
+                local curPitch = math.asin(camCF.LookVector.Y)
+                local savedPitch = math.asin(savedCamCF.LookVector.Y)
+                if math.abs(curPitch - savedPitch) > 0.003 then -- 0.17 derece sapma esigi
+                    -- Sadece pitch'i geri dondur, yaw (sol/sag) oyuncu kontrolunde kalsin
+                    local savedLook = savedCamCF.LookVector
+                    local curLook = camCF.LookVector
+                    -- Yaw yonunu koru, pitch sapmasini azalt
+                    local correctedLook = Vector3.new(curLook.X, curLook.Y - (curPitch - savedPitch) * 0.6, curLook.Z)
+                    if correctedLook.Magnitude > 0 then
+                        Camera.CFrame = CFrame.new(camCF.Position, camCF.Position + correctedLook.Unit)
+                    end
+                end
+            end
+        end)
     end
 
     -- TRIGGER
