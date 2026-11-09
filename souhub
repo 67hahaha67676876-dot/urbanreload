@@ -1584,7 +1584,7 @@ end)
 local fpsCount = 0; local fpsLast = tick(); local pingVal = 0
 
 RunService.RenderStepped:Connect(function()
-    pcall(updateESP)
+    -- Chams ve health tracking once (kamera degisiminden etkilenmiyor)
     pcall(updatePlayerChams)
     pcall(updateGunChams)
     pcall(trackHealthForHitChams)
@@ -1637,26 +1637,28 @@ RunService.RenderStepped:Connect(function()
     end
 
     -- AIMBOT (Auto camlock - en yakin kisiyi her frame takip eder)
-    if not S.Aimbot then locked = false; S.CurrentTarget = nil; return end
-    S.CurrentTarget = getClosest()
-    locked = S.CurrentTarget ~= nil
-    if locked and S.CurrentTarget and S.CurrentTarget.Character then
-        local char = S.CurrentTarget.Character
-        local part = char:FindFirstChild(S.AimbotPart) or char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head")
-        -- Arabadaki oyuncu icin SeatPart fallback
-        if not part then
-            pcall(function()
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum and hum.SeatPart then part = hum.SeatPart end
-            end)
-        end
-        if part then
-            local h = S.CurrentTarget.Character:FindFirstChildOfClass("Humanoid")
-            if h and h.Health > 0 then
-                local vel = Vector3.new()
-                pcall(function() vel = part.AssemblyLinearVelocity end)
-                local predicted = part.Position + vel * 0.05
-                Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
+    if not S.Aimbot then locked = false; S.CurrentTarget = nil
+    else
+        S.CurrentTarget = getClosest()
+        locked = S.CurrentTarget ~= nil
+        if locked and S.CurrentTarget and S.CurrentTarget.Character then
+            local tChar = S.CurrentTarget.Character
+            local part = tChar:FindFirstChild(S.AimbotPart) or tChar:FindFirstChild("HumanoidRootPart") or tChar:FindFirstChild("Head")
+            -- Arabadaki oyuncu icin SeatPart fallback
+            if not part then
+                pcall(function()
+                    local hum = tChar:FindFirstChildOfClass("Humanoid")
+                    if hum and hum.SeatPart then part = hum.SeatPart end
+                end)
+            end
+            if part then
+                local h = tChar:FindFirstChildOfClass("Humanoid")
+                if h and h.Health > 0 then
+                    local vel = Vector3.new()
+                    pcall(function() vel = part.AssemblyLinearVelocity end)
+                    local predicted = part.Position + vel * 0.05
+                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, predicted), S.AimbotSmoothing)
+                end
             end
         end
     end
@@ -1675,6 +1677,10 @@ RunService.RenderStepped:Connect(function()
             end
         end
     end
+
+    -- ESP en sona (kamera aimbot tarafindan hareket ettirildikten SONRA guncellenir)
+    -- Boylece box her zaman dogru ekran konumunda gozukur
+    pcall(updateESP)
 end)
 
 -- â”€â”€â”€ CLEANUP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
